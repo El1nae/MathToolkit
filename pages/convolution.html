@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>卷积积分，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+const HCOL = "#E76F51", P0 = CONV_PRESETS[0]; // HCOL: h(t−λ) 玫瑰橙
+function App() {
+  const [xStr, setXStr] = useState(P0.xExpr);
+  const [hStr, setHStr] = useState(P0.hExpr);
+  const [lamMin, setLamMin] = useState(P0.lamMin);
+  const [lamMax, setLamMax] = useState(P0.lamMax);
+  const [tMin, setTMin] = useState(P0.tMin);
+  const [tMax, setTMax] = useState(P0.tMax);
+  const [t, setT] = useState(P0.t0);
+  const applyPreset = (p) => {
+    setXStr(p.xExpr); setHStr(p.hExpr); setLamMin(p.lamMin); setLamMax(p.lamMax);
+    setTMin(p.tMin); setTMax(p.tMax); setT(p.t0);
+  };
+  const xv = useMemo(() => validateInput(xStr, "l"), [xStr]);
+  const hv = useMemo(() => validateInput(hStr, "l"), [hStr]);
+  const xFn = xv.fn || (() => 0), hFn = hv.fn || (() => 0);
+  const bothValid = xv.valid && hv.valid;
+  const errMsg = (!xv.valid && xv.error) ? "x(λ)：" + xv.error
+    : (!hv.valid && hv.error) ? "h(λ)：" + hv.error : null;
+  // 与某预设完全一致（含 λ 范围）→ 沿用其固定 yMax，画面稳定
+  const framePreset = useMemo(() => CONV_PRESETS.find(p => p.xExpr === xStr &&
+    p.hExpr === hStr && p.lamMin === lamMin && p.lamMax === lamMax) || null, [xStr, hStr, lamMin, lamMax]);
+  const activeIdx = useMemo(() => CONV_PRESETS.findIndex(p =>
+    p.xExpr === xStr && p.hExpr === hStr), [xStr, hStr]);
+  const y = useMemo(() => bothValid ? convolve(xFn, hFn, t, lamMin, lamMax) : 0,
+    [bothValid, xFn, hFn, t, lamMin, lamMax]);
+  const yMax = useMemo(() => {
+    if (framePreset) return framePreset.yMax;
+    if (!bothValid) return 1;
+    let m = 0;
+    for (let i = 0; i <= 200; i++) {
+      const l = lamMin + (i / 200) * (lamMax - lamMin), a = Math.abs(xFn(l)), b = Math.abs(hFn(l));
+      if (isFinite(a) && a > m) m = a;
+      if (isFinite(b) && b > m) m = b;
+    }
+    for (let i = 0; i <= 60; i++) {
+      const yv = Math.abs(convolve(xFn, hFn, tMin + (i / 60) * (tMax - tMin), lamMin, lamMax, 0.01));
+      if (isFinite(yv) && yv > m) m = yv;
+    }
+    return m > 0 ? m * 1.15 : 1;
+  }, [framePreset, bothValid, xFn, hFn, lamMin, lamMax, tMin, tMax]);
+  const ctx = useMemo(() => createPlotContext({ W: 360, H: 175,
+    pad: { l: 26, r: 26, t: 26, b: 26 }, xMin: lamMin, xMax: lamMax, yMin: 0, yMax }), [lamMin, lamMax, yMax]);
+  const paths = useMemo(() => buildConvPaths(xFn, hFn, t, lamMin, lamMax, ctx), [xFn, hFn, t, lamMin, lamMax, ctx]);
+  const noOut = { full: "", ox: () => 0, oy: () => 0, W: 360, H: 150, P: 26 };
+  const out = useMemo(() => bothValid ? buildOutputPath(xFn, hFn, lamMin, lamMax, tMin, tMax, yMax) : noOut,
+    [bothValid, xFn, hFn, lamMin, lamMax, tMin, tMax, yMax]);
+  const outDone = useMemo(() => bothValid ? buildOutputDone(xFn, hFn, lamMin, lamMax, tMin, tMax, t, yMax, out) : "",
+    [bothValid, xFn, hFn, lamMin, lamMax, tMin, tMax, t, yMax, out]);
+  const note = framePreset ? framePreset.note : "自定义公式：x(λ)·h(t−λ) 的重叠面积就是此刻的 y(t)。";
+  return (
+    <div>
+      <PageHeader title="卷积积分，动手看" subtitle="Convolution — fold, shift, multiply, integrate" />
+      <Intuition>
+        把 <b>h</b> 以原点为镜翻转，再向右滑到位置 <b>t</b>，与不动的 <b>x</b> 逐点相乘；
+        <b>重叠部分的面积</b>就是这一刻的输出 <b>y(t)</b>。拖动 t，面积描出整条输出曲线。
+      </Intuition>
+      <ExampleSwitcher examples={CONV_PRESETS} active={activeIdx < 0 ? -1 : activeIdx} onChange={(i) => applyPreset(CONV_PRESETS[i])} />
+      <Card>
+        <div className="section-label" style={{ marginBottom: 6 }}>输入信号 x(λ)</div>
+        <input className={"formula-input" + (xv.valid ? "" : " error")} value={xStr} spellCheck={false} autoComplete="off" onChange={(e) => setXStr(e.target.value)} />
+        <div className="section-label" style={{ margin: "10px 0 6px" }}>冲激响应 h(λ)</div>
+        <input className={"formula-input" + (hv.valid ? "" : " error")} value={hStr} spellCheck={false} autoComplete="off" onChange={(e) => setHStr(e.target.value)} />
+        <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+          <div style={{ flex: 1 }}>
+            <div className="section-label" style={{ marginBottom: 4 }}>λ 最小值</div>
+            <input type="number" step="0.5" className="num-input" value={lamMin}
+              onChange={(e) => { const v = parseFloat(e.target.value); if (isFinite(v) && v < lamMax) setLamMin(v); }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div className="section-label" style={{ marginBottom: 4 }}>λ 最大值</div>
+            <input type="number" step="0.5" className="num-input" value={lamMax}
+              onChange={(e) => { const v = parseFloat(e.target.value); if (isFinite(v) && v > lamMin) setLamMax(v); }} />
+          </div>
+        </div>
+        {errMsg && <div style={{ fontSize: 11, color: C.warn, marginTop: 8 }}>{errMsg}</div>}
+        <div style={{ fontSize: 11, color: C.dim, marginTop: 8, lineHeight: 1.6 }}>
+          支持条件式，如 <code>l&gt;=0&amp;&amp;l&lt;=1?1:0</code>（方波）。变量名用 <b>l</b> 代表 λ。
+        </div>
+      </Card>
+      <Card variant="chart">
+        <svg viewBox="0 0 360 175">
+          <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.grid} strokeWidth="1.5" />
+          <path d={paths.xFill} fill={C.fn} opacity="0.14" />
+          <path d={paths.xPath} fill="none" stroke={C.fn} strokeWidth="2" />
+          <path d={paths.hPath} fill="none" stroke={HCOL} strokeWidth="2" />
+          <path d={paths.prodFill} fill={C.fill} opacity="0.5" />
+          <DashedMarker ctx={ctx} x={t} color={C.sub} width={1} label={"t=" + t.toFixed(2)} bold />
+        </svg>
+        <Legend items={[{ color: C.fn, label: "x(λ) 输入" }, { color: HCOL, label: "h(t−λ) 翻转+平移" }, { color: C.fill, label: "相乘的面积" }]} />
+      </Card>
+      <Card>
+        <SliderControl label="时间 t（拖动平移 h）" display={t.toFixed(2)} color={C.fill} min={tMin} max={tMax} step={0.01} value={t} onChange={setT} last />
+      </Card>
+      <Card variant="chart">
+        <svg viewBox="0 0 360 150">
+          <line x1={out.P} y1={out.oy(0)} x2={out.W - out.P} y2={out.oy(0)} stroke={C.grid} strokeWidth="1.5" />
+          <path d={out.full} fill="none" stroke={C.grid} strokeWidth="2.5" />
+          <path d={outDone} fill="none" stroke={C.acc} strokeWidth="2.5" />
+          <circle cx={out.ox(t)} cy={out.oy(y)} r="4.5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+          <text x={out.ox(t)} y={out.oy(y) - 9} fontSize="11" fill={C.acc} fontWeight="700" textAnchor="middle" fontFamily="var(--font-mono)">y(t) = {y.toFixed(3)}</text>
+        </svg>
+        <Legend items={[{ color: C.acc, label: "y(t) 输出 = 面积" }]} />
+      </Card>
+      <p style={{ fontSize: 12, color: C.sub, lineHeight: 1.6, margin: "12px 2px 18px", fontStyle: "italic" }}>{note}</p>
+      <Card>
+        <Steps title="四步理解卷积" items={[
+          { title: "翻转 Folding", en: "h(λ) → h(−λ)", desc: "把 h(λ) 以原点为镜翻过来。", color: STEP_COLORS[0] },
+          { title: "平移 Shift", en: "h(−λ) → h(t−λ)", desc: "整体向右滑动 t，滑到当前时刻。", color: STEP_COLORS[1] },
+          { title: "相乘 Multiply", en: "x(λ)·h(t−λ)", desc: "与不动的 x(λ) 逐点相乘。", color: STEP_COLORS[2] },
+          { title: "积分 Integrate", en: "∫ x(λ)h(t−λ) dλ", desc: "把乘积的面积加起来，就是 y(t)。", color: STEP_COLORS[3] },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

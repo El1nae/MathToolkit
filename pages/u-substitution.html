@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>换元积分，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const CASES = [
+  { name: "2x·(x²+1)", fExpr: "2x*(x^2+1)", uExpr: "x^2+1", a: 0, b: 1.5 },
+  { name: "cos(x)·sin", fExpr: "cos(x)*exp(sin(x))", uExpr: "sin(x)", a: 0, b: 3 },
+  { name: "x·√(x²+1)", fExpr: "x*sqrt(x^2+1)", uExpr: "x^2+1", a: 0, b: 2 },
+];
+
+function App() {
+  const [fExpr, setFExpr] = useState("2x*(x^2+1)");
+  const [uExpr, setUExpr] = useState("x^2+1");
+  const [xMin, setXMin] = useState(0);
+  const [xMax, setXMax] = useState(1.5);
+
+  const fc = useMemo(() => validateInput(fExpr), [fExpr]);
+  const uc = useMemo(() => validateInput(uExpr), [uExpr]);
+  const f = fc.fn || ((x) => 2 * x * (x * x + 1));
+  const u = uc.fn || ((x) => x * x + 1);
+
+  // In u-space the integrand becomes f(x)/u'(x) plotted against u
+  const uPrime = (x) => numericalDerivative(u, x);
+
+  const rX = useMemo(() => autoRange(f, xMin, xMax), [f, xMin, xMax]);
+  const xCtx = useMemo(() => createPlotContext({ W: 360, H: 165, pad: { l: 28, r: 10, t: 12, b: 22 }, xMin, xMax, yMin: Math.min(0, rX.yMin), yMax: rX.yMax }), [xMin, xMax, rX]);
+
+  const uMin = u(xMin), uMax = u(xMax);
+  const uLo = Math.min(uMin, uMax), uHi = Math.max(uMin, uMax);
+  // g(uu): find x s.t. u(x)=uu is complex; instead parametric plot g vs u
+  const uPtsPath = useMemo(() => {
+    // build path in u-space: for each x, point (u(x), f(x)/u'(x))
+    const pts = []; const N = 300;
+    for (let i = 0; i <= N; i++) { const x = xMin + i / N * (xMax - xMin); const up = uPrime(x); const gv = Math.abs(up) > 1e-6 ? f(x) / up : 0; pts.push({ u: u(x), g: gv }); }
+    let gLo = Infinity, gHi = -Infinity; pts.forEach((p) => { if (isFinite(p.g)) { gLo = Math.min(gLo, p.g); gHi = Math.max(gHi, p.g); } });
+    const pad = (gHi - gLo) * 0.15 + 0.2; gLo = Math.min(0, gLo - pad); gHi += pad;
+    const uCtx = createPlotContext({ W: 360, H: 165, pad: { l: 28, r: 10, t: 12, b: 22 }, xMin: uLo, xMax: uHi, yMin: gLo, yMax: gHi });
+    let curve = "", fill = "M" + uCtx.sx(pts[0].u).toFixed(1) + " " + uCtx.sy(0).toFixed(1) + " ";
+    pts.forEach((p, i) => { const yy = uCtx.sy(Math.max(gLo, Math.min(gHi, p.g))); curve += (i === 0 ? "M" : "L") + uCtx.sx(p.u).toFixed(1) + " " + yy.toFixed(1) + " "; fill += "L" + uCtx.sx(p.u).toFixed(1) + " " + yy.toFixed(1) + " "; });
+    fill += "L" + uCtx.sx(pts[pts.length - 1].u).toFixed(1) + " " + uCtx.sy(0).toFixed(1) + " Z";
+    return { curve, fill, uCtx };
+  }, [f, u, xMin, xMax, uLo, uHi]);
+
+  const areaX = useMemo(() => numericalIntegral(f, xMin, xMax, 1000), [f, xMin, xMax]);
+  const applyCase = (c) => { setFExpr(c.fExpr); setUExpr(c.uExpr); setXMin(c.a); setXMax(c.b); };
+
+  return (
+    <div>
+      <PageHeader title="换元积分，动手看" subtitle="u-substitution — same area, new coordinate" />
+      <Intuition>
+        换元 <b style={{ color: C.acc }}>u = u(x)</b> 就是给横轴换一把新尺子。
+        虽然曲线形状变了，但两个坐标系里<b style={{ color: C.fill }}>阴影面积完全相等</b>——
+        因为 du = u′(x)dx 恰好补偿了横轴的拉伸。
+      </Intuition>
+
+      <Card>
+        <ExampleSwitcher examples={CASES.map((c) => ({ name: c.name }))}
+          active={CASES.findIndex((c) => c.fExpr === fExpr)} onChange={(i) => applyCase(CASES[i])} />
+        <div className="section-label" style={{ marginBottom: 6 }}>被积函数 f(x)</div>
+        <FormulaInput value={fExpr} onChange={setFExpr} isError={fExpr.trim() && !fc.valid} errorMsg={fc.error} />
+        <div className="section-label" style={{ marginBottom: 6, marginTop: 10 }}>换元 u(x)</div>
+        <FormulaInput value={uExpr} onChange={setUExpr} isError={uExpr.trim() && !uc.valid} errorMsg={uc.error} />
+        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">原坐标系 x · ∫f(x)dx ≈ {areaX.toFixed(4)}</div>
+        <svg viewBox="0 0 360 165">
+          <defs dangerouslySetInnerHTML={{ __html: AREA_GRADIENT_SVG + GLOW_FILTER_SVG }} />
+          <GridLines ctx={xCtx} />
+          <Axes ctx={xCtx} />
+          <path d={buildFillPath(f, xCtx, xMin, xMax)} fill="url(#areaFill)" />
+          <path d={buildCurvePath(f, xCtx)} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
+        </svg>
+        <Legend items={[{ color: C.fn, label: "f(x)" }, { color: C.fill, label: "面积 (x 系)" }]} />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">换元后 u 坐标系 · ∫g(u)du ≈ {areaX.toFixed(4)} （相等）</div>
+        <svg viewBox="0 0 360 165">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <GridLines ctx={uPtsPath.uCtx} />
+          <Axes ctx={uPtsPath.uCtx} />
+          <path d={uPtsPath.fill} fill={C.acc} opacity="0.16" />
+          <path d={uPtsPath.curve} fill="none" stroke={C.acc} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
+        </svg>
+        <Legend items={[{ color: C.acc, label: "g(u)=f/u′" }, { color: C.acc, label: "面积 (u 系)" }]} />
+      </Card>
+
+      <Card style={{ marginBottom: 0 }}>
+        <Steps title="换元积分三步" items={[
+          { title: "设 u", en: "Let u=u(x)", desc: "挑一个内层表达式作为新变量", color: C.acc },
+          { title: "换微元", en: "du=u′dx", desc: "把 dx 换成 du/u′，横轴被重新缩放", color: C.fill },
+          { title: "面积不变", en: "Same area", desc: "两个坐标系下积分值完全相等", color: C.fn },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

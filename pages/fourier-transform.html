@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>傅里叶变换，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+const TYPES = ["正弦 sine", "方波 square", "冲激 impulse"];
+const N = 128;
+
+function App() {
+  const [type, setType] = useState(0);
+  const [freq, setFreq] = useState(5);
+  // build discrete signal
+  const sig = useMemo(() => {
+    const s = [];
+    for (let n = 0; n < N; n++) {
+      const t = n / N;
+      let v;
+      if (type === 0) v = Math.sin(2 * Math.PI * freq * t);
+      else if (type === 1) v = Math.sin(2 * Math.PI * freq * t) >= 0 ? 1 : -1;
+      else v = (n % Math.max(1, Math.round(N / freq)) === 0) ? 1 : 0;
+      s.push(v);
+    }
+    return s;
+  }, [type, freq]);
+  // DFT magnitude
+  const spec = useMemo(() => dftMagnitude(sig), [sig]);
+  const specMax = Math.max(0.01, ...spec);
+
+  const tCtx = createPlotContext({ W: 360, H: 150, pad: { l: 30, r: 14, t: 14, b: 22 }, xMin: 0, xMax: N, yMin: -1.3, yMax: 1.3 });
+  const tPath = sig.map((v, n) => (n === 0 ? "M" : "L") + tCtx.sx(n).toFixed(1) + " " + tCtx.sy(v).toFixed(1)).join(" ");
+  const half = N / 2;
+  const fCtx = createPlotContext({ W: 360, H: 150, pad: { l: 30, r: 14, t: 14, b: 22 }, xMin: 0, xMax: half, yMin: 0, yMax: specMax * 1.15 });
+
+  return (
+    <div>
+      <PageHeader title="傅里叶变换，动手看" subtitle="Fourier transform — from time to frequency" backHref="../index.html" />
+      <Intuition>任何信号都能拆成不同频率的正弦波之和。<b style={{ color: C.fn }}>时域</b>看的是波形随时间起伏；<b style={{ color: C.acc }}>频域</b>看的是"每个频率占多少"。变换 X(k)=Σ x(n)e^(−j2πkn/N) 就是问：信号里藏着哪些频率？</Intuition>
+      <ExampleSwitcher examples={TYPES} active={type} onChange={setType} />
+      <Card variant="chart">
+        <div className="chart-label">时域 x(t)</div>
+        <svg viewBox="0 0 360 150">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <line x1={tCtx.pad.l} y1={tCtx.sy(0)} x2={tCtx.W - tCtx.pad.r} y2={tCtx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <path d={tPath} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" />
+        </svg>
+      </Card>
+      <Card variant="chart">
+        <div className="chart-label">频谱 |X(k)|</div>
+        <svg viewBox="0 0 360 150">
+          <line x1={fCtx.pad.l} y1={fCtx.sy(0)} x2={fCtx.W - fCtx.pad.r} y2={fCtx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          {spec.map((v, k) => (
+            <line key={k} x1={fCtx.sx(k)} y1={fCtx.sy(0)} x2={fCtx.sx(k)} y2={fCtx.sy(v)} stroke={C.acc} strokeWidth="2" strokeLinecap="round" opacity={v > specMax * 0.05 ? 1 : 0.35} />
+          ))}
+        </svg>
+        <Legend items={[{ color: C.fn, label: "时域波形" }, { color: C.acc, label: "频率成分" }]} />
+      </Card>
+      <Card>
+        <SliderControl label="频率参数 f" display={freq.toFixed(0)} color={C.fn} min={1} max={30} step={1} value={freq} onChange={setFreq} last hint="拖动看频谱峰值随之移动" />
+      </Card>
+      <Card>
+        <Steps title="三步理解傅里叶" items={[
+          { title: "假设基波", en: "e^(j2πkt)", desc: "用一族不同频率的复指数作为探针。", color: C.fn },
+          { title: "相关求和", en: "Σ x·探针", desc: "信号与每个频率相乘再求和，看契合度。", color: C.fill },
+          { title: "得到频谱", en: "|X(k)|", desc: "求和的幅度就是该频率的强度。", color: C.acc },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

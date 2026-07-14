@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>方向场，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo, useRef } = React;
+const PRESETS = [{ label: "x−y", expr: "x-y" }, { label: "y", expr: "y" }, { label: "−x/y", expr: "-x/y" }, { label: "x·y", expr: "x*y" }, { label: "sin(x)", expr: "sin(x)" }];
+const XMIN = -5, XMAX = 5, YMIN = -4, YMAX = 4;
+
+function App() {
+  const [exprStr, setExprStr] = useState("x-y");
+  const [seeds, setSeeds] = useState([{ x: -3, y: 2 }]);
+  const svgRef = useRef(null);
+  const check = useMemo(() => validateInput(exprStr.replace(/y/g, "@").replace(/@/g, "y")), [exprStr]);
+  // slope f(x,y): use shared 2-var parser
+  const slope = useMemo(() => compileSlopeExpr(exprStr), [exprStr]);
+  const ctx = createPlotContext({ W: 360, H: 300, pad: { l: 26, r: 14, t: 14, b: 22 }, xMin: XMIN, xMax: XMAX, yMin: YMIN, yMax: YMAX });
+
+  // slope field segments
+  const segs = [];
+  for (let gx = XMIN; gx <= XMAX; gx += 0.7) for (let gy = YMIN; gy <= YMAX; gy += 0.6) {
+    let s = slope(gx, gy); if (!isFinite(s)) continue;
+    const ang = Math.atan(s), L = 0.28;
+    segs.push({ x1: gx - L * Math.cos(ang), y1: gy - L * Math.sin(ang), x2: gx + L * Math.cos(ang), y2: gy + L * Math.sin(ang) });
+  }
+  // Euler solution curves from seeds
+  const curves = seeds.map(s => {
+    const fwd = [], bwd = []; const h = 0.05;
+    let x = s.x, y = s.y;
+    for (let i = 0; i < 200 && x <= XMAX && y >= YMIN - 1 && y <= YMAX + 1; i++) { fwd.push([x, y]); const k = slope(x, y); if (!isFinite(k)) break; y += h * k; x += h; }
+    x = s.x; y = s.y;
+    for (let i = 0; i < 200 && x >= XMIN && y >= YMIN - 1 && y <= YMAX + 1; i++) { bwd.push([x, y]); const k = slope(x, y); if (!isFinite(k)) break; y -= h * k; x -= h; }
+    return bwd.reverse().concat(fwd);
+  });
+  const toPath = (pts) => pts.map((p, i) => (i === 0 ? "M" : "L") + ctx.sx(p[0]).toFixed(1) + " " + ctx.sy(Math.max(YMIN - 1, Math.min(YMAX + 1, p[1]))).toFixed(1)).join(" ");
+
+  const onClick = (e) => {
+    const r = svgRef.current.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width * 360, py = (e.clientY - r.top) / r.height * 300;
+    const x = XMIN + (px - ctx.pad.l) / ctx.plotW * (XMAX - XMIN);
+    const y = YMIN + (1 - (py - ctx.pad.t) / ctx.plotH) * (YMAX - YMIN);
+    if (x >= XMIN && x <= XMAX && y >= YMIN && y <= YMAX) setSeeds(s => [...s, { x, y }]);
+  };
+
+  return (
+    <div>
+      <PageHeader title="方向场，动手看" subtitle="Direction field — arrows every solution must follow" backHref="../index.html" />
+      <Intuition>微分方程 dy/dx = f(x,y) 在每一点都规定了一个<b style={{ color: C.dim }}>斜率</b>。把这些小线段画满平面就是<b>方向场</b>。任何解曲线都必须处处与这些线段相切——<b style={{ color: C.acc }}>点击图上任意点</b>放一条解曲线看看它如何顺流而下。</Intuition>
+      <Card>
+        <div className="section-label" style={{ marginBottom: 8 }}>dy/dx = f(x, y) =</div>
+        <input className="formula-input" value={exprStr} spellCheck={false} autoComplete="off" onChange={(e) => setExprStr(e.target.value)} />
+        <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {PRESETS.map(p => <button key={p.label} className="preset-btn" onClick={() => setExprStr(p.expr)}>{p.label}</button>)}
+        </div>
+      </Card>
+      <Card variant="chart">
+        <svg viewBox="0 0 360 300" ref={svgRef} onClick={onClick} style={{ cursor: "crosshair" }}>
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <line x1={ctx.sx(0)} y1={ctx.pad.t} x2={ctx.sx(0)} y2={ctx.H - ctx.pad.b} stroke={C.axis} strokeWidth="1" />
+          {segs.map((s, i) => <line key={i} x1={ctx.sx(s.x1)} y1={ctx.sy(s.y1)} x2={ctx.sx(s.x2)} y2={ctx.sy(s.y2)} stroke={C.dim} strokeWidth="1" />)}
+          {curves.map((c, i) => <path key={i} d={toPath(c)} fill="none" stroke={C.acc} strokeWidth="2" filter="url(#glow)" />)}
+          {seeds.map((s, i) => <circle key={i} cx={ctx.sx(s.x)} cy={ctx.sy(s.y)} r="3.5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />)}
+        </svg>
+        <Legend items={[{ color: C.dim, label: "斜率场" }, { color: C.acc, label: "解曲线（点击添加）" }]} />
+      </Card>
+      <Card>
+        <button className="preset-btn" onClick={() => setSeeds([])} style={{ width: "100%", padding: "10px" }}>清空解曲线</button>
+      </Card>
+      <Card>
+        <Steps title="三步理解方向场" items={[
+          { title: "算斜率", en: "f(x,y)", desc: "每一点的 dy/dx 就是该点线段的倾角。", color: C.dim },
+          { title: "铺满平面", en: "slope field", desc: "画出网格上所有小线段，得到流场。", color: C.fill },
+          { title: "顺流积分", en: "Euler", desc: "从初始点出发沿切线走，描出解曲线。", color: C.acc },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

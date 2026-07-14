@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>欧拉法，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+const PRESETS = [{ label: "y' = y", expr: "y" }, { label: "y' = x", expr: "x" }, { label: "y' = x−y", expr: "x-y" }, { label: "y' = −y", expr: "-y" }, { label: "y' = x·y", expr: "x*y" }];
+const XMAX = 4;
+
+function App() {
+  const [exprStr, setExprStr] = useState("y");
+  const [h, setH] = useState(0.5);
+  const [x0, setX0] = useState(0);
+  const [y0, setY0] = useState(1);
+  const slope = useMemo(() => compileSlopeExpr(exprStr), [exprStr]);
+
+  // RK4 fine reference ("exact")
+  const ref = useMemo(() => rk4Solve(slope, x0, y0, XMAX, 0.01), [slope, x0, y0]);
+  // Euler with step h
+  const euler = useMemo(() => eulerSolve(slope, x0, y0, XMAX, h), [slope, x0, y0, h]);
+
+  const allY = ref.concat(euler).map(p => p[1]).filter(isFinite);
+  const yMin = Math.min(-0.5, ...allY) - 0.3, yMax = Math.max(1, ...allY) + 0.3;
+  const ctx = createPlotContext({ W: 360, H: 260, pad: { l: 30, r: 14, t: 14, b: 22 }, xMin: x0, xMax: XMAX, yMin, yMax });
+  const toPath = (pts) => pts.map((p, i) => (i === 0 ? "M" : "L") + ctx.sx(p[0]).toFixed(1) + " " + ctx.sy(Math.max(yMin, Math.min(yMax, p[1]))).toFixed(1)).join(" ");
+
+  const finalErr = euler.length && ref.length ? Math.abs(euler[euler.length - 1][1] - ref[ref.length - 1][1]) : 0;
+
+  return (
+    <div>
+      <PageHeader title="欧拉法，动手看" subtitle="Euler's method — walk along tangent lines" backHref="../index.html" />
+      <Intuition>欧拉法用<b style={{ color: C.fill }}>折线</b>近似解曲线：站在当前点，按斜率 f(x,y) 直着走一小步 h，到新点再算新斜率，如此重复。<b style={{ color: C.acc }}>步长 h 越小</b>折线越贴合真解，但计算量越大——这是精度与成本的权衡。</Intuition>
+      <Card>
+        <div className="section-label" style={{ marginBottom: 8 }}>dy/dx = f(x, y) =</div>
+        <input className="formula-input" value={exprStr} spellCheck={false} autoComplete="off" onChange={(e) => setExprStr(e.target.value)} />
+        <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {PRESETS.map(p => <button key={p.label} className="preset-btn" onClick={() => setExprStr(p.expr)}>{p.label}</button>)}
+        </div>
+      </Card>
+      <Card variant="chart">
+        <svg viewBox="0 0 360 260">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <path d={toPath(ref)} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" />
+          <path d={toPath(euler)} fill="none" stroke={C.acc} strokeWidth="2" strokeDasharray="1 0" />
+          {euler.map((p, i) => <circle key={i} cx={ctx.sx(p[0])} cy={ctx.sy(Math.max(yMin, Math.min(yMax, p[1])))} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.2" />)}
+        </svg>
+        <Legend items={[{ color: C.fn, label: "真解 (RK4)" }, { color: C.acc, label: "欧拉折线" }]} />
+      </Card>
+      <Card>
+        <SliderControl label="步长 h" display={h.toFixed(2)} color={C.acc} min={0.05} max={1} step={0.05} value={h} onChange={setH} />
+        <SliderControl label="初值 y₀" display={y0.toFixed(1)} color={C.fill} min={-2} max={3} step={0.1} value={y0} onChange={setY0} last />
+      </Card>
+      <Card>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <StatTile label="步数" value={Math.max(0, euler.length - 1)} color={C.acc} />
+          <StatTile label="终点误差" value={finalErr.toFixed(3)} color={C.warn} />
+        </div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>把 h 减半，误差大约也减半（欧拉法是一阶方法，误差 ∝ h）。</div>
+      </Card>
+      <Card>
+        <Steps title="欧拉法三步" items={[
+          { title: "算斜率", en: "k = f(xₙ,yₙ)", desc: "在当前点求微分方程给的斜率。", color: C.fn },
+          { title: "走一步", en: "yₙ₊₁ = yₙ + h·k", desc: "沿切线方向前进步长 h。", color: C.acc },
+          { title: "重复", en: "xₙ₊₁ = xₙ + h", desc: "到新点再算斜率，逐段逼近真解。", color: C.fill },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

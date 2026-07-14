@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>正交分解，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+function App() {
+  const [vx, setVx] = useState(3), [vy, setVy] = useState(4);
+  const [theta, setTheta] = useState(30);
+  const ctx = createCenteredContext({ W: 360, H: 340, unit: 26 });
+  const t = theta * Math.PI / 180;
+  const ux = Math.cos(t), uy = Math.sin(t);   // basis direction
+  const wx = -Math.sin(t), wy = Math.cos(t);  // perpendicular basis
+  const cPar = vx * ux + vy * uy;             // component along u
+  const cPerp = vx * wx + vy * wy;            // component along w
+  const parX = cPar * ux, parY = cPar * uy;
+  const perpX = cPerp * wx, perpY = cPerp * wy;
+  const grid = []; for (let g = -6; g <= 6; g++) grid.push(g);
+
+  return (
+    <div>
+      <PageHeader title="正交分解，动手看" subtitle="Orthogonal decomposition — split v into two axes" backHref="../index.html" />
+      <Intuition>任何向量 <b style={{ color: C.fn }}>v</b> 都能唯一拆成沿基方向 <b style={{ color: C.fill }}>u</b> 的分量加上垂直方向 <b style={{ color: C.acc }}>w</b> 的分量：<b>v = c₁u + c₂w</b>。这就是坐标系旋转的本质——换一组正交基看同一个向量。</Intuition>
+      <Card variant="chart">
+        <svg viewBox="0 0 360 340">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          {grid.map(g => <g key={g}>
+            <line x1={ctx.sx(g)} y1={ctx.sy(-6)} x2={ctx.sx(g)} y2={ctx.sy(6)} stroke={C.grid} strokeWidth="0.5" />
+            <line x1={ctx.sx(-6)} y1={ctx.sy(g)} x2={ctx.sx(6)} y2={ctx.sy(g)} stroke={C.grid} strokeWidth="0.5" />
+          </g>)}
+          <line x1={ctx.sx(-6 * ux)} y1={ctx.sy(-6 * uy)} x2={ctx.sx(6 * ux)} y2={ctx.sy(6 * uy)} stroke={C.fill} strokeWidth="0.8" strokeDasharray="3 3" opacity="0.6" />
+          <line x1={ctx.sx(-6 * wx)} y1={ctx.sy(-6 * wy)} x2={ctx.sx(6 * wx)} y2={ctx.sy(6 * wy)} stroke={C.acc} strokeWidth="0.8" strokeDasharray="3 3" opacity="0.6" />
+          <line x1={ctx.sx(parX)} y1={ctx.sy(parY)} x2={ctx.sx(vx)} y2={ctx.sy(vy)} stroke={C.dim} strokeWidth="1.5" strokeDasharray="4 3" />
+          <Arrow ctx={ctx} x={parX} y={parY} color={C.fill} w={2} />
+          <Arrow ctx={ctx} x={perpX} y={perpY} color={C.acc} w={2} />
+          <Arrow ctx={ctx} x={vx} y={vy} color={C.fn} />
+        </svg>
+        <Legend items={[{ color: C.fn, label: "v" }, { color: C.fill, label: "沿 u 分量" }, { color: C.acc, label: "沿 w 分量" }]} />
+      </Card>
+      <Card>
+        <SliderControl label="v.x" display={vx.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={vx} onChange={setVx} />
+        <SliderControl label="v.y" display={vy.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={vy} onChange={setVy} />
+        <SliderControl label="基方向 θ" display={theta.toFixed(0) + "°"} color={C.fill} min={0} max={180} step={1} value={theta} onChange={setTheta} last />
+      </Card>
+      <Card>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <StatTile label="c₁ (沿 u)" value={cPar.toFixed(2)} color={C.fill} />
+          <StatTile label="c₂ (沿 w)" value={cPerp.toFixed(2)} color={C.acc} />
+        </div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>验证：c₁²+c₂² = {(cPar * cPar + cPerp * cPerp).toFixed(2)} = |v|² = {(vx * vx + vy * vy).toFixed(2)}。长度在换基后保持不变。</div>
+      </Card>
+      <Card>
+        <Steps title="三步正交分解" items={[
+          { title: "选正交基", en: "u ⊥ w", desc: "取夹角 θ 的方向 u 和它的垂线 w。", color: C.fn },
+          { title: "投影取分量", en: "cᵢ = v·基", desc: "点积得到 v 在每个基上的坐标。", color: C.fill },
+          { title: "重组", en: "v = c₁u + c₂w", desc: "两分量向量相加还原出 v。", color: C.acc },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>泰勒级数，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const EXAMPLES = {
+  exp: { name: "eˣ", label: "f(x) = eˣ", f: (x) => Math.exp(x),
+    coeff: (k, x0) => Math.exp(x0) / factorial(k),
+    xMin: -3, xMax: 3, yMin: -1, yMax: 12, x0def: 0 },
+  sin: { name: "sin(x)", label: "f(x) = sin(x)", f: (x) => Math.sin(x),
+    coeff: (k, x0) => Math.sin(x0 + k * Math.PI / 2) / factorial(k),
+    xMin: -6.5, xMax: 6.5, yMin: -2.2, yMax: 2.2, x0def: 0 },
+};
+
+function App() {
+  const [exKey, setExKey] = useState("exp");
+  const [n, setN] = useState(3);
+  const [x0, setX0] = useState(0);
+  const ex = EXAMPLES[exKey];
+  const cx0 = Math.max(ex.xMin + 0.4, Math.min(ex.xMax - 0.4, x0));
+
+  const ctx = useMemo(() => createPlotContext({
+    W: 360, H: 240, xMin: ex.xMin, xMax: ex.xMax, yMin: ex.yMin, yMax: ex.yMax,
+  }), [exKey]);
+
+  const fPath = useMemo(() => buildCurvePath(ex.f, ctx), [exKey, ctx]);
+  const polyPaths = useMemo(() => {
+    const arr = [];
+    for (let k = 0; k <= n; k++) arr.push(buildCurvePath((x) => taylorVal(ex.coeff, cx0, k, x), ctx));
+    return arr;
+  }, [exKey, cx0, n, ctx]);
+  const errPath = useMemo(() =>
+    buildBetweenPath(ex.f, (x) => taylorVal(ex.coeff, cx0, n, x), ctx), [exKey, cx0, n, ctx]);
+
+  const formula = useMemo(() => {
+    const parts = [];
+    for (let k = 0; k <= Math.min(n, 5); k++) {
+      const c = ex.coeff(k, cx0);
+      if (Math.abs(c) < 1e-9) continue;
+      parts.push(k === 0 ? c.toFixed(3) : `${c.toFixed(3)}·(x−x₀)${k > 1 ? "^" + k : ""}`);
+    }
+    let s = parts.join(" + ").replace(/\+ -/g, "− ");
+    return "T" + n + "(x) = " + s + (n > 5 ? " + …" : "");
+  }, [exKey, cx0, n]);
+
+  const testX = cx0 + (exKey === "exp" ? 1.5 : 2.5);
+  const err = Math.abs(ex.f(testX) - taylorVal(ex.coeff, cx0, n, testX));
+
+  const switchEx = (k) => { setExKey(k); setN(3); setX0(EXAMPLES[k].x0def); };
+
+  return (
+    <div>
+      <PageHeader title="泰勒级数，动手看" subtitle="Taylor series — approximating a curve with polynomials" />
+      <Intuition>
+        在展开中心 <b style={{ color: C.acc }}>x₀</b> 处，用抛物线、三次曲线……逐层
+        <b style={{ color: C.fill }}>贴合</b>原函数 <b style={{ color: C.fn }}>f(x)</b>。
+        阶数 n 越高，多项式修正的弯曲越多，逼近范围越广。
+      </Intuition>
+
+      <Card>
+        <ExampleSwitcher examples={Object.keys(EXAMPLES).map((k) => ({ name: EXAMPLES[k].name }))}
+          active={Object.keys(EXAMPLES).indexOf(exKey)}
+          onChange={(i) => switchEx(Object.keys(EXAMPLES)[i])} />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">{ex.label}</div>
+        <svg viewBox="0 0 360 240">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <GridLines ctx={ctx} />
+          <Axes ctx={ctx} />
+          <path d={errPath} fill={C.fill} opacity="0.1" />
+          {polyPaths.slice(0, n).map((d, k) => (
+            <path key={k} d={d} fill="none" stroke={C.fill} strokeWidth="1.3"
+              opacity={0.12 + 0.5 * (k / Math.max(1, n))} />
+          ))}
+          <path d={polyPaths[n]} fill="none" stroke={C.fill} strokeWidth="2.6" strokeLinecap="round" />
+          <path d={fPath} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
+          <DashedMarker ctx={ctx} x={cx0} color={C.acc} label="x₀" bold />
+          <circle cx={ctx.sx(cx0)} cy={ctx.sy(Math.max(ctx.yMin, Math.min(ctx.yMax, ex.f(cx0))))}
+            r="4.5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+        </svg>
+        <Legend items={[
+          { color: C.fn, label: "原函数 f(x)" },
+          { color: C.fill, label: `泰勒多项式 T${n}` },
+          { color: C.acc, label: "误差区 / 中心 x₀" },
+        ]} />
+      </Card>
+
+      <Card>
+        <SliderControl label="阶数 n" display={n} min={0} max={12} step={1} value={n}
+          color={C.fill} onChange={(v) => setN(Math.round(v))} />
+        <SliderControl label="展开中心 x₀" display={cx0.toFixed(2)} color={C.acc}
+          min={ex.xMin + 0.4} max={ex.xMax - 0.4} step={0.05} value={cx0} onChange={setX0} last />
+      </Card>
+
+      <Card>
+        <div className="section-label" style={{ marginBottom: 8 }}>当前多项式（前几项）</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 12.5, color: C.fill, wordBreak: "break-word" }}>{formula}</div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>
+          在 x = {testX.toFixed(2)} 处，误差 |f − T{n}| = <b style={{ color: C.ink }}>{err < 1000 ? err.toFixed(4) : err.toExponential(2)}</b>，增大 n 看它如何变小。
+        </div>
+      </Card>
+
+      <Card style={{ marginBottom: 0 }}>
+        <Steps title="三步看泰勒展开" items={[
+          { title: "定中心", en: "Center", desc: "选展开点 x₀，多项式在此与 f 完全吻合", color: C.acc },
+          { title: "加项", en: "Add terms", desc: "每加一阶导数项，就多修正一层弯曲", color: C.fill },
+          { title: "看收敛", en: "Converge", desc: "n 越大，逼近区间越宽，误差越小", color: C.fn },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

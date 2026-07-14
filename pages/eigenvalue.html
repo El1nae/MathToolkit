@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>特征值与特征向量，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+const PRESETS = [
+  { name: "对称 symmetric", m: [2, 1, 1, 2] },
+  { name: "缩放 scale", m: [3, 0, 0, 1] },
+  { name: "旋转 rotation", m: [0, -1, 1, 0] },
+  { name: "剪切 shear", m: [1, 1, 0, 1] },
+];
+
+function App() {
+  const [m, setM] = useState(PRESETS[0].m);
+  const [a, b, c, d] = m;
+  const ctx = createCenteredContext({ W: 360, H: 340, unit: 28 });
+  const E = useMemo(() => eig(a, b, c, d), [a, b, c, d]);
+  const setEl = (i, v) => { const nm = m.slice(); nm[i] = parseFloat(v) || 0; setM(nm); };
+
+  const circle = [];
+  for (let k = 0; k < 24; k++) {
+    const th = (k / 24) * 2 * Math.PI, x = Math.cos(th) * 3, y = Math.sin(th) * 3;
+    circle.push({ x, y, tx: a * x + b * y, ty: c * x + d * y });
+  }
+  const grid = []; for (let g = -6; g <= 6; g++) grid.push(g);
+
+  return (
+    <div>
+      <PageHeader title="特征值与特征向量，动手看" subtitle="Eigenvalues — directions the matrix only stretches" backHref="../index.html" />
+      <Intuition>矩阵作用在向量上通常既<b>旋转</b>又<b>拉伸</b>。但沿着<b style={{ color: C.acc }}>特征向量</b>方向，矩阵只做纯拉伸，倍数就是<b>特征值 λ</b>。虚线圆是原始向量，实线是变换后。</Intuition>
+      <ExampleSwitcher examples={PRESETS} onChange={(i) => setM(PRESETS[i].m)} />
+      <Card>
+        <div className="section-label" style={{ marginBottom: 8 }}>矩阵 A（2×2）</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {[0, 1, 2, 3].map(i => <input key={i} className="num-input" type="number" step="0.5" value={m[i]} onChange={(e) => setEl(i, e.target.value)} />)}
+        </div>
+      </Card>
+      <Card variant="chart">
+        <svg viewBox="0 0 360 340">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          {grid.map(g => <g key={g}>
+            <line x1={ctx.sx(g)} y1={ctx.sy(-6)} x2={ctx.sx(g)} y2={ctx.sy(6)} stroke={C.grid} strokeWidth="0.5" />
+            <line x1={ctx.sx(-6)} y1={ctx.sy(g)} x2={ctx.sx(6)} y2={ctx.sy(g)} stroke={C.grid} strokeWidth="0.5" />
+          </g>)}
+          <line x1={ctx.sx(-6)} y1={ctx.sy(0)} x2={ctx.sx(6)} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <line x1={ctx.sx(0)} y1={ctx.sy(-6)} x2={ctx.sx(0)} y2={ctx.sy(6)} stroke={C.axis} strokeWidth="1" />
+          <polygon points={circle.map(p => ctx.sx(p.x) + "," + ctx.sy(p.y)).join(" ")} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
+          <polygon points={circle.map(p => ctx.sx(p.tx) + "," + ctx.sy(p.ty)).join(" ")} fill={C.fillLight} stroke={C.fill} strokeWidth="1.5" />
+          {E.real && [E.v1, E.v2].map((v, i) => (
+            <line key={i} x1={ctx.sx(-v[0] * 6)} y1={ctx.sy(-v[1] * 6)} x2={ctx.sx(v[0] * 6)} y2={ctx.sy(v[1] * 6)} stroke={C.acc} strokeWidth="2" filter="url(#glow)" />
+          ))}
+          {!E.real && <text x="180" y="175" fill={C.warn} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="13">复特征值 → 纯旋转，无实特征方向</text>}
+        </svg>
+        <Legend items={[{ color: C.dim, label: "原始 (圆)", dashed: true }, { color: C.fill, label: "变换后" }, { color: C.acc, label: "特征方向" }]} />
+      </Card>
+      <Card>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <StatTile label="λ₁" value={E.real ? E.l1.toFixed(2) : "复数"} color={C.acc} />
+          <StatTile label="λ₂" value={E.real ? E.l2.toFixed(2) : "复数"} color={C.acc} />
+        </div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>迹 tr(A) = λ₁+λ₂ = <b style={{ color: C.ink }}>{E.T}</b>，行列式 det(A) = λ₁·λ₂ = <b style={{ color: C.ink }}>{E.D}</b>。</div>
+      </Card>
+      <Card>
+        <Steps title="三步求特征值" items={[
+          { title: "特征方程", en: "det(A − λI) = 0", desc: "λ² − tr·λ + det = 0，用求根公式解。", color: C.fn },
+          { title: "判别号", en: "Δ = tr² − 4det", desc: "Δ≥0 得实特征值；Δ<0 矩阵在做旋转。", color: C.fill },
+          { title: "求方向", en: "(A − λI)v = 0", desc: "每个 λ 解出一条不变方向 v。", color: C.acc },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

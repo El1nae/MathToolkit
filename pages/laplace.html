@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>拉普拉斯变换，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+function App() {
+  const [sigma, setSigma] = useState(-0.6); // real part (decay/growth)
+  const [omega, setOmega] = useState(2.5);  // imaginary part (oscillation)
+  // s-plane centered context
+  const ctx = createCenteredContext({ W: 360, H: 300, unit: 40 });
+  const grid = []; for (let g = -3; g <= 3; g++) grid.push(g);
+
+  // time response e^(σt) cos(ωt)
+  const tMax = 10;
+  const rCtx = createPlotContext({ W: 360, H: 170, pad: { l: 30, r: 14, t: 14, b: 22 }, xMin: 0, xMax: tMax, yMin: -1.4, yMax: 1.4 });
+  const resp = (t) => Math.exp(sigma * t) * Math.cos(omega * t);
+  const rPath = buildCurvePath(resp, rCtx, { n: 400 });
+  const envUp = buildCurvePath((t) => Math.min(1.4, Math.exp(sigma * t)), rCtx, { n: 200 });
+  const envDn = buildCurvePath((t) => Math.max(-1.4, -Math.exp(sigma * t)), rCtx, { n: 200 });
+  const stable = sigma < -0.01, marginal = Math.abs(sigma) <= 0.01;
+
+  return (
+    <div>
+      <PageHeader title="拉普拉斯变换，动手看" subtitle="Laplace — poles decide how a system responds" backHref="../index.html" />
+      <Intuition>系统的行为由 <b>s 平面</b>上的<b style={{ color: C.warn }}>极点</b>位置决定。极点的<b>实部 σ</b> 控制衰减还是发散（左半平面=稳定衰减），<b>虚部 ω</b> 控制振荡快慢。右边就是这对极点对应的时域响应 e^(σt)cos(ωt)。</Intuition>
+      <Card variant="chart">
+        <div className="chart-label">s 平面（极点 ×）</div>
+        <svg viewBox="0 0 360 300">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          {grid.map(g => <g key={g}>
+            <line x1={ctx.sx(g)} y1={ctx.sy(-3)} x2={ctx.sx(g)} y2={ctx.sy(3)} stroke={C.grid} strokeWidth="0.5" />
+            <line x1={ctx.sx(-4)} y1={ctx.sy(g)} x2={ctx.sx(4)} y2={ctx.sy(g)} stroke={C.grid} strokeWidth="0.5" />
+          </g>)}
+          <rect x={ctx.sx(-4.5)} y="0" width={ctx.sx(0) - ctx.sx(-4.5)} height="300" fill={C.acc} opacity="0.05" />
+          <line x1={ctx.sx(0)} y1="0" x2={ctx.sx(0)} y2="300" stroke={C.axis} strokeWidth="1.2" />
+          <line x1="0" y1={ctx.sy(0)} x2="360" y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1.2" />
+          {[omega, -omega].map((w, i) => (
+            <g key={i}>
+              <line x1={ctx.sx(sigma) - 6} y1={ctx.sy(w) - 6} x2={ctx.sx(sigma) + 6} y2={ctx.sy(w) + 6} stroke={C.warn} strokeWidth="2.5" />
+              <line x1={ctx.sx(sigma) - 6} y1={ctx.sy(w) + 6} x2={ctx.sx(sigma) + 6} y2={ctx.sy(w) - 6} stroke={C.warn} strokeWidth="2.5" />
+            </g>
+          ))}
+          <text x={ctx.sx(-2)} y="20" fill={C.acc} fontSize="10" fontFamily="var(--font-mono)">稳定区 (左半平面)</text>
+        </svg>
+      </Card>
+      <Card variant="chart">
+        <div className="chart-label">时域响应 e^(σt)·cos(ωt)</div>
+        <svg viewBox="0 0 360 170">
+          <line x1={rCtx.pad.l} y1={rCtx.sy(0)} x2={rCtx.W - rCtx.pad.r} y2={rCtx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <path d={envUp} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
+          <path d={envDn} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
+          <path d={rPath} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" />
+        </svg>
+        <Legend items={[{ color: C.fn, label: "响应 y(t)" }, { color: C.dim, label: "包络 e^(σt)", dashed: true }]} />
+      </Card>
+      <Card>
+        <SliderControl label="极点实部 σ" display={sigma.toFixed(2)} color={C.warn} min={-2} max={1} step={0.02} value={sigma} onChange={setSigma} />
+        <SliderControl label="极点虚部 ω" display={omega.toFixed(2)} color={C.fn} min={0} max={6} step={0.05} value={omega} onChange={setOmega} last />
+      </Card>
+      <Card>
+        <div style={{ fontSize: 13, color: C.sub }}>当前系统：<b style={{ color: marginal ? C.warn : stable ? C.acc : C.warn }}>{marginal ? "临界（等幅振荡）" : stable ? "稳定（响应衰减到 0）" : "不稳定（响应发散）"}</b>。极点越靠左衰减越快，虚部越大振荡越密。</div>
+      </Card>
+      <Card>
+        <Steps title="三步读极点" items={[
+          { title: "定位极点", en: "s = σ ± jω", desc: "分母为零的点，决定系统固有模态。", color: C.warn },
+          { title: "看实部", en: "Re(s) = σ", desc: "σ<0 衰减稳定，σ>0 发散不稳定。", color: C.acc },
+          { title: "看虚部", en: "Im(s) = ω", desc: "ω 决定振荡频率，越大抖得越快。", color: C.fn },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

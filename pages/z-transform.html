@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>z 变换，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+function App() {
+  const [pr, setPr] = useState(0.8), [pa, setPa] = useState(0.6);  // pole radius, angle(π)
+  const [zr, setZr] = useState(1.0), [za, setZa] = useState(2.4);  // zero radius, angle(π)
+  const ctx = createCenteredContext({ W: 360, H: 300, unit: 95 });
+  const pole = [pr * Math.cos(pa), pr * Math.sin(pa)];
+  const zero = [zr * Math.cos(za), zr * Math.sin(za)];
+  const unit = [];
+  for (let k = 0; k <= 64; k++) { const t = (k / 64) * 2 * Math.PI; unit.push([Math.cos(t), Math.sin(t)]); }
+
+  // frequency response |H(e^jw)| = |z - zero| / |z - pole| (with conjugates)
+  const NW = 120;
+  const respPts = [];
+  for (let i = 0; i <= NW; i++) {
+    const w = (i / NW) * Math.PI;
+    const zx = Math.cos(w), zy = Math.sin(w);
+    const numA = Math.hypot(zx - zero[0], zy - zero[1]) * Math.hypot(zx - zero[0], zy + zero[1]);
+    const denA = Math.hypot(zx - pole[0], zy - pole[1]) * Math.hypot(zx - pole[0], zy + pole[1]);
+    respPts.push(denA > 1e-6 ? numA / denA : 20);
+  }
+  const rMax = Math.max(0.01, ...respPts) * 1.15;
+  const rCtx = createPlotContext({ W: 360, H: 150, pad: { l: 30, r: 14, t: 14, b: 22 }, xMin: 0, xMax: Math.PI, yMin: 0, yMax: rMax });
+  const rPath = respPts.map((v, i) => (i === 0 ? "M" : "L") + rCtx.sx((i / NW) * Math.PI).toFixed(1) + " " + rCtx.sy(v).toFixed(1)).join(" ");
+
+  return (
+    <div>
+      <PageHeader title="z 变换，动手看" subtitle="z-transform — poles and zeros shape a digital filter" backHref="../index.html" />
+      <Intuition>数字滤波器由 z 平面上的<b style={{ color: C.warn }}>极点 ×</b> 和 <b style={{ color: C.fn }}>零点 ○</b> 决定。频率响应就是沿<b style={{ color: C.acc }}>单位圆</b>走一圈时到各零/极点的距离比：靠近极点 → 增益放大（峰），靠近零点 → 增益归零（谷）。极点必须在单位圆内才稳定。</Intuition>
+      <Card variant="chart">
+        <div className="chart-label">z 平面</div>
+        <svg viewBox="0 0 360 300">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <line x1="0" y1={ctx.sy(0)} x2="360" y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <line x1={ctx.sx(0)} y1="0" x2={ctx.sx(0)} y2="300" stroke={C.axis} strokeWidth="1" />
+          <polygon points={unit.map(p => ctx.sx(p[0]) + "," + ctx.sy(p[1])).join(" ")} fill="none" stroke={C.acc} strokeWidth="1.5" />
+          {[pole, [pole[0], -pole[1]]].map((p, i) => (
+            <g key={"p" + i}>
+              <line x1={ctx.sx(p[0]) - 6} y1={ctx.sy(p[1]) - 6} x2={ctx.sx(p[0]) + 6} y2={ctx.sy(p[1]) + 6} stroke={C.warn} strokeWidth="2.5" />
+              <line x1={ctx.sx(p[0]) - 6} y1={ctx.sy(p[1]) + 6} x2={ctx.sx(p[0]) + 6} y2={ctx.sy(p[1]) - 6} stroke={C.warn} strokeWidth="2.5" />
+            </g>
+          ))}
+          {[zero, [zero[0], -zero[1]]].map((z, i) => (
+            <circle key={"z" + i} cx={ctx.sx(z[0])} cy={ctx.sy(z[1])} r="6" fill="none" stroke={C.fn} strokeWidth="2.5" />
+          ))}
+        </svg>
+        <Legend items={[{ color: C.acc, label: "单位圆" }, { color: C.warn, label: "极点 ×" }, { color: C.fn, label: "零点 ○" }]} />
+      </Card>
+      <Card variant="chart">
+        <div className="chart-label">频率响应 |H(e^jω)|，ω: 0 → π</div>
+        <svg viewBox="0 0 360 150">
+          <line x1={rCtx.pad.l} y1={rCtx.sy(0)} x2={rCtx.W - rCtx.pad.r} y2={rCtx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <path d={rPath} fill="none" stroke={C.fill} strokeWidth="2" filter="url(#glow)" />
+        </svg>
+      </Card>
+      <Card>
+        <SliderControl label="极点半径 r" display={pr.toFixed(2)} color={C.warn} min={0} max={0.98} step={0.01} value={pr} onChange={setPr} />
+        <SliderControl label="极点角度 (×π)" display={pa.toFixed(2)} color={C.warn} min={0} max={Math.PI} step={0.02} value={pa} onChange={setPa} />
+        <SliderControl label="零点半径 r" display={zr.toFixed(2)} color={C.fn} min={0} max={1.5} step={0.01} value={zr} onChange={setZr} />
+        <SliderControl label="零点角度 (×π)" display={za.toFixed(2)} color={C.fn} min={0} max={Math.PI} step={0.02} value={za} onChange={setZa} last />
+      </Card>
+      <Card>
+        <div style={{ fontSize: 13, color: C.sub }}>极点半径 {pr < 1 ? <b style={{ color: C.acc }}>&lt; 1，滤波器稳定</b> : <b style={{ color: C.warn }}>≥ 1，不稳定</b>}。把极点角度对准某频率会在那里形成增益峰，零点则挖出陷波。</div>
+      </Card>
+      <Card>
+        <Steps title="三步设计滤波器" items={[
+          { title: "放极点", en: "poles → 峰", desc: "极点靠近单位圆制造增益峰（谐振）。", color: C.warn },
+          { title: "放零点", en: "zeros → 谷", desc: "零点落在单位圆上把该频率完全抑制。", color: C.fn },
+          { title: "读响应", en: "|H(e^jω)|", desc: "沿单位圆的距离比就是频率响应曲线。", color: C.fill },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>柱壳法，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+function App() {
+  const [exprStr, setExprStr] = useState("sin(x)");
+  const [xMin, setXMin] = useState(0);
+  const [xMax, setXMax] = useState(3.14);
+  const [x, setX] = useState(1.4);
+
+  const check = useMemo(() => validateInput(exprStr), [exprStr]);
+  const isError = exprStr.trim().length > 0 && !check.valid;
+  const f = check.fn || ((x) => Math.sin(x));
+  const cx = Math.max(xMin, Math.min(xMax, x));
+
+  const { yMin, yMax } = useMemo(() => autoRange(f, xMin, xMax), [f, xMin, xMax]);
+  const y0 = Math.min(0, yMin);
+  const ctx = useMemo(() => createPlotContext({ W: 360, H: 220, xMin, xMax, yMin: y0, yMax }), [xMin, xMax, y0, yMax]);
+  const curve = useMemo(() => buildCurvePath(f, ctx), [f, ctx]);
+  const height = Math.abs(f(cx));
+
+  const vol = useMemo(() => 2 * Math.PI * numericalIntegral((t) => t * Math.abs(f(t)), xMin, cx, 800), [f, xMin, cx]);
+  const applyPreset = (p) => { setExprStr(p.expr); setXMin(Math.max(0, p.xRange[0])); setXMax(p.xRange[1]); setX((Math.max(0, p.xRange[0]) + p.xRange[1]) / 2); };
+
+  // shell shown as thin vertical strip mirrored on both sides of axis at radius cx
+  const topY = ctx.sy(f(cx)), baseY = ctx.sy(0);
+  const sxPos = ctx.sx(cx);
+  const sxMir = ctx.sx(-cx); // mirror (may be off-plot but fine visually if axis at 0)
+
+  return (
+    <div>
+      <PageHeader title="柱壳法，动手看" subtitle="Shell method — nested cylindrical shells" />
+      <Intuition>
+        区域绕 y 轴旋转时，把它切成一片片<b style={{ color: C.acc }}>竖条</b>。
+        每条旋转后变成一个薄<b style={{ color: C.fill }}>圆柱壳</b>：半径 x、高 f(x)、厚 dx。
+        把壳展开是个长方片，面积 2πx·f(x)，累加得体积 2π∫x·f(x)dx。
+      </Intuition>
+
+      <Card>
+        <div className="section-label" style={{ marginBottom: 8 }}>高度函数 f(x)</div>
+        <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
+        <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
+        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">半径 x = {cx.toFixed(2)}，高 f(x) = {height.toFixed(3)} · 绕 y 轴</div>
+        <svg viewBox="0 0 360 220">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <GridLines ctx={ctx} />
+          <Axes ctx={ctx} />
+          <line x1={ctx.sx(0)} y1={ctx.pad.t} x2={ctx.sx(0)} y2={ctx.H - ctx.pad.b} stroke={C.acc} strokeWidth="1.4" strokeDasharray="4 4" opacity="0.6" />
+          <path d={buildFillPath(f, ctx, xMin, xMax)} fill={C.fn} opacity="0.08" />
+          {/* shell strip on positive side */}
+          <rect x={sxPos - 4} y={Math.min(topY, baseY)} width="8" height={Math.abs(baseY - topY)}
+            fill={C.fill} fillOpacity="0.5" stroke={C.fill} strokeWidth="1.4" />
+          {/* mirror strip to suggest cylindrical shell */}
+          <rect x={sxMir - 4} y={Math.min(topY, baseY)} width="8" height={Math.abs(baseY - topY)}
+            fill={C.fill} fillOpacity="0.18" stroke={C.fill} strokeWidth="1" strokeDasharray="3 3" />
+          <ellipse cx={ctx.sx(0)} cy={baseY} rx={Math.abs(sxPos - ctx.sx(0))} ry="6"
+            fill="none" stroke={C.acc} strokeWidth="1.4" opacity="0.7" />
+          <path d={curve} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
+          <DashedMarker ctx={ctx} x={cx} color={C.fill} label="x" bold />
+        </svg>
+        <Legend items={[
+          { color: C.fn, label: "f(x)" },
+          { color: C.fill, label: "圆柱壳 (半径 x)" },
+          { color: C.acc, label: "旋转轴 y" },
+        ]} />
+      </Card>
+
+      <Card>
+        <SliderControl label="壳半径 x" display={cx.toFixed(2)} color={C.fill}
+          min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
+          hint="拖动 x，圆柱壳由内向外一层层累加" />
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+          <StatTile label="壳面积 2πx·f(x)" value={(2 * Math.PI * cx * height).toFixed(3)} color={C.fill} />
+          <StatTile label="体积 (到 x)" value={vol.toFixed(3)} color={C.acc} />
+        </div>
+      </Card>
+
+      <Card style={{ marginBottom: 0 }}>
+        <Steps title="柱壳法三步" items={[
+          { title: "切竖条", en: "Vertical strip", desc: "把区域切成半径 x、高 f(x) 的薄条", color: C.fn },
+          { title: "卷成壳", en: "Roll shell", desc: "绕 y 轴旋转成薄圆柱壳，展开面积 2πx·f", color: C.fill },
+          { title: "累加", en: "Sum", desc: "体积 = 2π∫x·f(x)dx", color: C.acc },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

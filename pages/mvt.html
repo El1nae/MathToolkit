@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>中值定理，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+// find c where f'(c) = target slope, via scanning + shared bisection
+function findC(f, a, b, slope) {
+  const g = (x) => numericalDerivative(f, x) - slope;
+  const N = 200, dx = (b - a) / N;
+  let prev = a + 1e-4, pv = g(prev);
+  for (let i = 1; i <= N; i++) {
+    const cur = a + i * dx, cv = g(cur);
+    if (pv === 0) return prev;
+    if (pv * cv < 0) return bisectRoot(g, prev, cur, 40);
+    prev = cur; pv = cv;
+  }
+  return (a + b) / 2;
+}
+
+function App() {
+  const [exprStr, setExprStr] = useState("x^3-3x");
+  const [a, setA] = useState(-1.5);
+  const [b, setB] = useState(2);
+
+  const check = useMemo(() => validateInput(exprStr), [exprStr]);
+  const isError = exprStr.trim().length > 0 && !check.valid;
+  const f = check.fn || ((x) => x * x * x - 3 * x);
+
+  const xMin = a - 0.6, xMax = b + 0.6;
+  const { yMin, yMax } = useMemo(() => autoRange(f, xMin, xMax), [f, xMin, xMax]);
+  const ctx = useMemo(() => createPlotContext({ W: 360, H: 240, xMin, xMax, yMin, yMax }), [xMin, xMax, yMin, yMax]);
+  const curve = useMemo(() => buildCurvePath(f, ctx), [f, ctx]);
+
+  const slope = (f(b) - f(a)) / (b - a);
+  const c = useMemo(() => findC(f, a, b, slope), [f, a, b, slope]);
+  const fc = f(c);
+
+  const applyPreset = (p) => { setExprStr(p.expr); setA(p.xRange[0] + 0.3); setB(p.xRange[1] - 0.3); };
+
+  return (
+    <div>
+      <PageHeader title="中值定理，动手看" subtitle="Mean Value Theorem — a tangent parallel to the secant" />
+      <Intuition>
+        连接端点 a、b 的 <b style={{ color: C.fill }}>割线</b> 有个平均斜率。
+        中值定理保证：区间内至少存在一点 <b style={{ color: C.acc }}>c</b>，其
+        <b style={{ color: C.fn }}>切线</b>恰好和割线平行——瞬时速度等于平均速度。
+      </Intuition>
+
+      <Card>
+        <div className="section-label" style={{ marginBottom: 8 }}>输入函数 f(x)</div>
+        <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
+        <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">割线与平行切线 · 平均斜率 = {slope.toFixed(3)}</div>
+        <svg viewBox="0 0 360 240">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <GridLines ctx={ctx} />
+          <Axes ctx={ctx} />
+          <line x1={ctx.sx(a)} y1={ctx.sy(f(a))} x2={ctx.sx(b)} y2={ctx.sy(f(b))}
+            stroke={C.fill} strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round" />
+          <line x1={ctx.sx(c - 1)} y1={ctx.sy(fc - slope)} x2={ctx.sx(c + 1)} y2={ctx.sy(fc + slope)}
+            stroke={C.acc} strokeWidth="2" strokeLinecap="round" />
+          <path d={curve} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
+          <circle cx={ctx.sx(a)} cy={ctx.sy(f(a))} r="4" fill={C.fill} stroke={C.bg} strokeWidth="1.5" />
+          <circle cx={ctx.sx(b)} cy={ctx.sy(f(b))} r="4" fill={C.fill} stroke={C.bg} strokeWidth="1.5" />
+          <DashedMarker ctx={ctx} x={c} color={C.acc} label="c" bold />
+          <circle cx={ctx.sx(c)} cy={ctx.sy(Math.max(yMin, Math.min(yMax, fc)))} r="5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+        </svg>
+        <Legend items={[
+          { color: C.fn, label: "f(x)" },
+          { color: C.fill, label: "割线 secant", dashed: true },
+          { color: C.acc, label: "切线 @ c" },
+        ]} />
+      </Card>
+
+      <Card>
+        <SliderControl label="左端点 a" display={a.toFixed(2)} color={C.fill}
+          min={xMin - 0.4} max={b - 0.4} step={0.05} value={a} onChange={(v) => setA(v)} />
+        <SliderControl label="右端点 b" display={b.toFixed(2)} color={C.fill}
+          min={a + 0.4} max={xMax + 0.4} step={0.05} value={b} onChange={(v) => setB(v)} last />
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+          <StatTile label="平均斜率 (割线)" value={slope.toFixed(3)} color={C.fill} />
+          <StatTile label="c 点 (f′(c)=平均)" value={c.toFixed(3)} color={C.acc} />
+        </div>
+      </Card>
+
+      <Card style={{ marginBottom: 0 }}>
+        <Steps title="中值定理三步" items={[
+          { title: "画割线", en: "Secant", desc: "连接端点，斜率 = 平均变化率", color: C.fill },
+          { title: "找 c", en: "Find c", desc: "用二分法搜索 f′(c) = 平均斜率的点", color: C.acc },
+          { title: "平行", en: "Parallel", desc: "c 处切线与割线平行，两者斜率相等", color: C.fn },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

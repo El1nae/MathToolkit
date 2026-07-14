@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>向量投影，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+function App() {
+  const [ax, setAx] = useState(3), [ay, setAy] = useState(4);
+  const [bx, setBx] = useState(5), [by, setBy] = useState(1);
+  const ctx = createCenteredContext({ W: 360, H: 340, unit: 26 });
+  const dot = ax * bx + ay * by, bb = bx * bx + by * by;
+  const k = bb > 1e-9 ? dot / bb : 0;
+  const px = k * bx, py = k * by;
+  const scalarProj = Math.hypot(px, py) * (k >= 0 ? 1 : -1);
+  const grid = []; for (let g = -6; g <= 6; g++) grid.push(g);
+
+  return (
+    <div>
+      <PageHeader title="向量投影，动手看" subtitle="Projection — the shadow of a onto b" backHref="../index.html" />
+      <Intuition>把向量 <b style={{ color: C.fn }}>a</b> 投影到 <b style={{ color: C.fill }}>b</b> 上，就像正午阳光下 a 落在 b 直线上的<b>影子</b>。影子长度 = a·b / |b|，方向沿着 b。垂直虚线连接 a 的尖端和它的影子。</Intuition>
+      <Card variant="chart">
+        <svg viewBox="0 0 360 340">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          {grid.map(g => <g key={g}>
+            <line x1={ctx.sx(g)} y1={ctx.sy(-6)} x2={ctx.sx(g)} y2={ctx.sy(6)} stroke={C.grid} strokeWidth="0.5" />
+            <line x1={ctx.sx(-6)} y1={ctx.sy(g)} x2={ctx.sx(6)} y2={ctx.sy(g)} stroke={C.grid} strokeWidth="0.5" />
+          </g>)}
+          <line x1={ctx.sx(-6)} y1={ctx.sy(0)} x2={ctx.sx(6)} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <line x1={ctx.sx(0)} y1={ctx.sy(-6)} x2={ctx.sx(0)} y2={ctx.sy(6)} stroke={C.axis} strokeWidth="1" />
+          <line x1={ctx.sx(ax)} y1={ctx.sy(ay)} x2={ctx.sx(px)} y2={ctx.sy(py)} stroke={C.dim} strokeWidth="1.5" strokeDasharray="4 3" />
+          <Arrow ctx={ctx} x={bx} y={by} color={C.fill} w={2} />
+          <Arrow ctx={ctx} x={ax} y={ay} color={C.fn} />
+          <Arrow ctx={ctx} x={px} y={py} color={C.acc} />
+        </svg>
+        <Legend items={[{ color: C.fn, label: "a" }, { color: C.fill, label: "b" }, { color: C.acc, label: "proj_b(a)" }]} />
+      </Card>
+      <Card>
+        <SliderControl label="a.x" display={ax.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={ax} onChange={setAx} />
+        <SliderControl label="a.y" display={ay.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={ay} onChange={setAy} />
+        <SliderControl label="b.x" display={bx.toFixed(1)} color={C.fill} min={-6} max={6} step={0.1} value={bx} onChange={setBx} />
+        <SliderControl label="b.y" display={by.toFixed(1)} color={C.fill} min={-6} max={6} step={0.1} value={by} onChange={setBy} last />
+      </Card>
+      <Card>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <StatTile label="标量投影 comp_b a" value={scalarProj.toFixed(2)} color={C.acc} />
+          <StatTile label="系数 a·b / b·b" value={k.toFixed(2)} color={C.fill} />
+        </div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>投影向量 = ({px.toFixed(2)}, {py.toFixed(2)})，它是 b 方向上离 a 最近的点。</div>
+      </Card>
+      <Card>
+        <Steps title="三步理解投影" items={[
+          { title: "点积", en: "a·b", desc: "衡量 a 有多少沿着 b 的方向。", color: C.fn },
+          { title: "归一化", en: "a·b / b·b", desc: "除以 |b|² 得到伸缩系数 k。", color: C.fill },
+          { title: "还原向量", en: "k·b", desc: "沿 b 方向伸缩，得到投影向量。", color: C.acc },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

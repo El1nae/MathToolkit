@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>旋转曲面，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+function App() {
+  const [exprStr, setExprStr] = useState("sqrt(x)");
+  const [xMin, setXMin] = useState(0.2);
+  const [xMax, setXMax] = useState(4);
+  const [x, setX] = useState(2);
+
+  const check = useMemo(() => validateInput(exprStr), [exprStr]);
+  const isError = exprStr.trim().length > 0 && !check.valid;
+  const f = check.fn || ((x) => Math.sqrt(x));
+  const cx = Math.max(xMin, Math.min(xMax, x));
+
+  const yMax = useMemo(() => { let m = 0.5; for (let i = 0; i <= 100; i++) { const xx = xMin + i / 100 * (xMax - xMin); const v = Math.abs(f(xx)); if (isFinite(v) && v > m) m = v; } return m * 1.15; }, [f, xMin, xMax]);
+  const ctx = useMemo(() => createPlotContext({ W: 360, H: 220, xMin, xMax, yMin: -yMax, yMax }), [xMin, xMax, yMax]);
+
+  const curve = useMemo(() => buildCurvePath(f, ctx), [f, ctx]);
+  const curveNeg = useMemo(() => buildCurvePath((x) => -f(x), ctx), [f, ctx]);
+  const r = Math.abs(f(cx));
+
+  // surface area 2π∫ f√(1+f'²) dx
+  const surf = useMemo(() => {
+    const integrand = (t) => Math.abs(f(t)) * Math.sqrt(1 + Math.pow(numericalDerivative(f, t), 2));
+    return 2 * Math.PI * numericalIntegral(integrand, xMin, cx, 400);
+  }, [f, xMin, cx]);
+
+  const applyPreset = (p) => { setExprStr(p.expr); setXMin(Math.max(0.1, p.xRange[0])); setXMax(p.xRange[1]); setX((Math.max(0.1, p.xRange[0]) + p.xRange[1]) / 2); };
+
+  const ringRy = (ctx.sy(0) - ctx.sy(r)); // pixel radius vertical
+  return (
+    <div>
+      <PageHeader title="旋转曲面，动手看" subtitle="Surface of revolution — spinning a curve around an axis" />
+      <Intuition>
+        把曲线 <b style={{ color: C.fn }}>f(x)</b> 绕 x 轴旋转一圈，扫出一个曲面。
+        在位置 x 处切一刀，得到半径 <b style={{ color: C.acc }}>r = f(x)</b> 的圆环。
+        把所有圆环的斜边长累加，就是曲面面积 2π∫f√(1+f′²)dx。
+      </Intuition>
+
+      <Card>
+        <div className="section-label" style={{ marginBottom: 8 }}>母线 f(x)</div>
+        <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
+        <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
+        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">母线绕 x 轴旋转 · 位置 x 处圆环半径 r = {r.toFixed(3)}</div>
+        <svg viewBox="0 0 360 220">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <GridLines ctx={ctx} />
+          <Axes ctx={ctx} />
+          <path d={buildBetweenPath(f, (x) => -f(x), ctx)} fill={C.fill} opacity="0.08" />
+          <path d={curve} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
+          <path d={curveNeg} fill="none" stroke={C.fn} strokeWidth="1.4" opacity="0.4" strokeDasharray="4 3" />
+          {/* cross-section ring as ellipse at cx */}
+          <ellipse cx={ctx.sx(cx)} cy={ctx.sy(0)} rx="7" ry={ringRy}
+            fill={C.acc} fillOpacity="0.12" stroke={C.acc} strokeWidth="2" />
+          <DashedMarker ctx={ctx} x={cx} color={C.acc} label="x" bold />
+          <circle cx={ctx.sx(cx)} cy={ctx.sy(r)} r="4" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+        </svg>
+        <Legend items={[
+          { color: C.fn, label: "母线 f(x)" },
+          { color: C.acc, label: "旋转圆环 (半径 r)" },
+        ]} />
+      </Card>
+
+      <Card>
+        <SliderControl label="切面位置 x" display={cx.toFixed(2)} color={C.acc}
+          min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
+          hint="拖动 x，圆环沿轴滑动，累积曲面面积" />
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+          <StatTile label="当前圆环半径 r" value={r.toFixed(3)} color={C.acc} />
+          <StatTile label="曲面面积 (到 x)" value={surf.toFixed(3)} color={C.fill} />
+        </div>
+      </Card>
+
+      <Card style={{ marginBottom: 0 }}>
+        <Steps title="旋转曲面三步" items={[
+          { title: "旋转母线", en: "Revolve", desc: "曲线绕 x 轴一圈，扫出立体曲面", color: C.fn },
+          { title: "切圆环", en: "Slice ring", desc: "在 x 处半径 r=f(x)，斜边 √(1+f′²)dx", color: C.acc },
+          { title: "累加", en: "Sum", desc: "面积 = 2π∫f√(1+f′²)dx", color: C.fill },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

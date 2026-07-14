@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>弹簧振子，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+const TMAX = 12;
+
+function App() {
+  const [b, setB] = useState(0.4);  // damping
+  const [k, setK] = useState(4);    // spring constant
+  const [m, setM] = useState(1);    // mass
+  const [t, setT] = useState(0);
+  const raf = useRef(null), start = useRef(null);
+
+  useEffect(() => {
+    const loop = (ts) => { if (!start.current) start.current = ts; setT(((ts - start.current) / 1000) % TMAX); raf.current = requestAnimationFrame(loop); };
+    raf.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf.current);
+  }, []);
+
+  // x(t) = e^(-bt/2m) cos(ω t),  ω = sqrt(k/m - (b/2m)^2)
+  const gamma = b / (2 * m), w0 = Math.sqrt(k / m);
+  const disc = k / m - gamma * gamma;
+  let x;
+  let regime;
+  if (disc > 1e-6) { const wd = Math.sqrt(disc); x = (tt) => Math.exp(-gamma * tt) * Math.cos(wd * tt); regime = "欠阻尼（振荡衰减）"; }
+  else if (disc < -1e-6) { const r = Math.sqrt(-disc); x = (tt) => Math.exp(-gamma * tt) * (Math.cosh(r * tt) + (gamma / r) * Math.sinh(r * tt)) / 1; regime = "过阻尼（不振荡）"; }
+  else { x = (tt) => Math.exp(-gamma * tt) * (1 + gamma * tt); regime = "临界阻尼"; }
+
+  const xNow = x(t);
+  // spring drawing: horizontal, wall at left, mass at right displaced by xNow
+  const restX = 210, amp = 55, massX = restX + xNow * amp;
+  const coils = 14, sx0 = 40, coilY = 70;
+  let spring = `M ${sx0} ${coilY} `;
+  for (let i = 0; i <= coils; i++) { const px = sx0 + (massX - 22 - sx0) * (i / coils); const py = coilY + (i % 2 === 0 ? -12 : 12) * (i > 0 && i < coils ? 1 : 0); spring += `L ${px.toFixed(1)} ${py.toFixed(1)} `; }
+
+  const ctx = createPlotContext({ W: 360, H: 170, pad: { l: 30, r: 14, t: 14, b: 22 }, xMin: 0, xMax: TMAX, yMin: -1.2, yMax: 1.2 });
+  const path = buildCurvePath(x, ctx, { n: 500 });
+  const env = buildCurvePath((tt) => Math.min(1.2, Math.exp(-gamma * tt)), ctx, { n: 200 });
+  const envN = buildCurvePath((tt) => Math.max(-1.2, -Math.exp(-gamma * tt)), ctx, { n: 200 });
+
+  return (
+    <div>
+      <PageHeader title="弹簧振子，动手看" subtitle="Spring-mass — how damping shapes the motion" backHref="../index.html" />
+      <Intuition>质量在弹簧上的运动由 <b>m x″ + b x′ + k x = 0</b> 决定。<b style={{ color: C.acc }}>阻尼 b</b> 决定摆动方式：小阻尼来回<b>振荡</b>着停下（欠阻尼），大阻尼<b>不振荡</b>直接归位（过阻尼），中间那个临界值最快静止。解是 e^(−bt/2m)·cos(ωt)。</Intuition>
+      <Card variant="chart">
+        <div className="chart-label">物理模型（实时动画）</div>
+        <svg viewBox="0 0 360 140">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <line x1={sx0} y1="30" x2={sx0} y2="110" stroke={C.dim} strokeWidth="3" />
+          <line x1={restX} y1="30" x2={restX} y2="110" stroke={C.ghost} strokeWidth="1" strokeDasharray="3 4" />
+          <path d={spring} fill="none" stroke={C.fn} strokeWidth="2" />
+          <rect x={massX - 22} y={coilY - 22} width="44" height="44" rx="6" fill={C.fillLight} stroke={C.fill} strokeWidth="2" filter="url(#glow)" />
+          <text x={massX} y={coilY + 5} fill={C.ink} fontSize="12" textAnchor="middle" fontFamily="var(--font-mono)">m</text>
+        </svg>
+      </Card>
+      <Card variant="chart">
+        <div className="chart-label">位移 x(t)</div>
+        <svg viewBox="0 0 360 170">
+          <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <path d={env} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
+          <path d={envN} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
+          <path d={path} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" />
+          <circle cx={ctx.sx(t)} cy={ctx.sy(Math.max(-1.2, Math.min(1.2, xNow)))} r="4" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+        </svg>
+        <Legend items={[{ color: C.fn, label: "x(t)" }, { color: C.dim, label: "衰减包络", dashed: true }, { color: C.acc, label: "当前时刻" }]} />
+      </Card>
+      <Card>
+        <SliderControl label="阻尼 b" display={b.toFixed(2)} color={C.acc} min={0} max={6} step={0.05} value={b} onChange={setB} />
+        <SliderControl label="弹簧刚度 k" display={k.toFixed(1)} color={C.fill} min={0.5} max={10} step={0.1} value={k} onChange={setK} />
+        <SliderControl label="质量 m" display={m.toFixed(1)} color={C.fn} min={0.3} max={4} step={0.1} value={m} onChange={setM} last />
+      </Card>
+      <Card>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <StatTile label="固有频率 ω₀=√(k/m)" value={w0.toFixed(2)} color={C.fn} />
+          <StatTile label="临界阻尼 b_c=2√(km)" value={(2 * Math.sqrt(k * m)).toFixed(2)} color={C.acc} />
+        </div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>当前状态：<b style={{ color: regime[0] === "欠" ? C.fn : regime[0] === "过" ? C.warn : C.acc }}>{regime}</b>。b 与 2√(km) 的大小关系决定了三种情形。</div>
+      </Card>
+      <Card>
+        <Steps title="三种阻尼情形" items={[
+          { title: "欠阻尼", en: "b < 2√(km)", desc: "来回振荡，振幅按 e^(−bt/2m) 衰减。", color: C.fn },
+          { title: "临界阻尼", en: "b = 2√(km)", desc: "不振荡且最快回到平衡，最优刹车。", color: C.acc },
+          { title: "过阻尼", en: "b > 2√(km)", desc: "缓慢爬回平衡，像浸在糖浆里。", color: C.warn },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

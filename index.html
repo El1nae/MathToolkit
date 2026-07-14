@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>不妙工具</title>
+<link rel="stylesheet" href="ui/theme.css" />
+<link rel="stylesheet" href="ui/components.css" />
+<style>
+body{min-height:100vh;padding:72px 28px 60px}
+.wrap{max-width:680px;margin:0 auto;text-align:center}
+.logo{margin-bottom:8px}
+h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
+.sub{font-size:13px;color:var(--text-3);margin-bottom:36px}
+.cat{display:flex;align-items:center;gap:10px;margin:24px 0 10px;text-align:left}
+.cat span{font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-4)}
+.cat::after{content:'';flex:1;height:1px;background:var(--border-1)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:left}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <svg class="logo" width="48" height="48" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="22" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+    <path d="M10 34 Q18 8 26 24 T42 14" fill="none" stroke="rgba(100,140,255,0.90)" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="26" cy="24" r="3" fill="rgba(160,100,255,0.80)"/>
+  </svg>
+  <h1>不妙工具</h1>
+  <p class="sub">Interactive Math Visualizations — 拖一拖滑块，直觉就来了</p>
+
+  <div class="cat"><span>微积分基础</span></div>
+  <div class="grid">
+    <a class="glass-1 nav-card" href="pages/derivative.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>微分 / 导数</h3>
+      <div class="en">Derivative</div>
+      <p>割线逼近切线，看瞬时变化率</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/integral.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>定积分</h3>
+      <div class="en">Definite Integral</div>
+      <p>输入公式，看面积累积</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/taylor.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>泰勒展开</h3>
+      <div class="en">Taylor Series</div>
+      <p>多项式逐项逼近原函数</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/ftc.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>基本定理</h3>
+      <div class="en">FTC</div>
+      <p>积分的导数 = 原函数</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/chain-rule.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>链式法则</h3>
+      <div class="en">Chain Rule</div>
+      <p>齿轮联动看复合函数</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/mvt.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>中值定理</h3>
+      <div class="en">MVT</div>
+      <p>切线平行于割线的点</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/fourier-series.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>傅里叶级数</h3>
+      <div class="en">Fourier Series</div>
+      <p>正弦波叠加拼出任意波形</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/improper-integral.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>反常积分</h3>
+      <div class="en">Improper Integral</div>
+      <p>上限→∞，面积收敛？</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/u-substitution.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>换元积分</h3>
+      <div class="en">u-Substitution</div>
+      <p>坐标变换，面积守恒</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/parametric.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>参数方程</h3>
+      <div class="en">Parametric</div>
+      <p>点在平面上的运动轨迹</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/polar-area.html" style="--glow-color:rgba(100,140,255,0.45)">
+      <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
+      <h3>极坐标面积</h3>
+      <div class="en">Polar Area</div>
+      <p>扇形扫出面积</p>
+    </a>
+  </div>
+
+  <div class="cat"><span>积分应用</span></div>
+  <div class="grid">
+    <a class="glass-1 nav-card" href="pages/convolution.html" style="--glow-color:rgba(38,166,154,0.45)">
+      <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
+      <h3>卷积积分</h3>
+      <div class="en">Convolution</div>
+      <p>翻转、平移、相乘、积分</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/disk-method.html" style="--glow-color:rgba(38,166,154,0.45)">
+      <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
+      <h3>圆盘法</h3>
+      <div class="en">Disk Method</div>
+      <p>绕 x 轴旋转体体积</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/shell-method.html" style="--glow-color:rgba(38,166,154,0.45)">
+      <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
+      <h3>柱壳法</h3>
+      <div class="en">Shell Method</div>
+      <p>绕 y 轴旋转体体积</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/washer.html" style="--glow-color:rgba(38,166,154,0.45)">
+      <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
+      <h3>垫圈法</h3>
+      <div class="en">Washer Method</div>
+      <p>环形截面旋转体</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/surface-revolution.html" style="--glow-color:rgba(38,166,154,0.45)">
+      <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
+      <h3>旋转体表面积</h3>
+      <div class="en">Surface of Revolution</div>
+      <p>环带展开算侧面积</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/double-integral.html" style="--glow-color:rgba(38,166,154,0.45)">
+      <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
+      <h3>二重积分</h3>
+      <div class="en">Double Integral</div>
+      <p>热力图 + 截面叠加</p>
+    </a>
+  </div>
+
+  <div class="cat"><span>线性代数</span></div>
+  <div class="grid">
+    <a class="glass-1 nav-card" href="pages/eigenvalue.html" style="--glow-color:rgba(100,140,255,0.35)">
+      <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
+      <h3>特征值</h3>
+      <div class="en">Eigenvalue</div>
+      <p>方向不变的向量</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/linear-transform.html" style="--glow-color:rgba(100,140,255,0.35)">
+      <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
+      <h3>线性变换</h3>
+      <div class="en">Linear Transform</div>
+      <p>网格实时形变</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/projection.html" style="--glow-color:rgba(100,140,255,0.35)">
+      <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
+      <h3>向量投影</h3>
+      <div class="en">Projection</div>
+      <p>向量的"影子"</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/dot-product.html" style="--glow-color:rgba(100,140,255,0.35)">
+      <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
+      <h3>点积</h3>
+      <div class="en">Dot Product</div>
+      <p>投影 × 长度 = 标量</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/cross-product.html" style="--glow-color:rgba(100,140,255,0.35)">
+      <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
+      <h3>叉积</h3>
+      <div class="en">Cross Product</div>
+      <p>平行四边形面积</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/orthogonal.html" style="--glow-color:rgba(100,140,255,0.35)">
+      <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
+      <h3>正交分解</h3>
+      <div class="en">Orthogonal</div>
+      <p>基向量分量之和</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/svd.html" style="--glow-color:rgba(100,140,255,0.35)">
+      <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
+      <h3>SVD 分解</h3>
+      <div class="en">SVD</div>
+      <p>旋转→缩放→旋转</p>
+    </a>
+  </div>
+
+  <div class="cat"><span>信号与变换</span></div>
+  <div class="grid">
+    <a class="glass-1 nav-card" href="pages/fourier-transform.html" style="--glow-color:rgba(160,100,255,0.40)">
+      <div class="dot" style="background:rgba(160,100,255,0.65)"></div>
+      <h3>傅里叶变换</h3>
+      <div class="en">Fourier Transform</div>
+      <p>时域 ↔ 频域联动</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/laplace.html" style="--glow-color:rgba(160,100,255,0.40)">
+      <div class="dot" style="background:rgba(160,100,255,0.65)"></div>
+      <h3>拉普拉斯变换</h3>
+      <div class="en">Laplace Transform</div>
+      <p>s 平面极零点图</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/z-transform.html" style="--glow-color:rgba(160,100,255,0.40)">
+      <div class="dot" style="background:rgba(160,100,255,0.65)"></div>
+      <h3>z 变换</h3>
+      <div class="en">z-Transform</div>
+      <p>单位圆上的频率响应</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/sampling.html" style="--glow-color:rgba(160,100,255,0.40)">
+      <div class="dot" style="background:rgba(160,100,255,0.65)"></div>
+      <h3>采样定理</h3>
+      <div class="en">Sampling Theorem</div>
+      <p>采样率 vs 混叠</p>
+    </a>
+  </div>
+
+  <div class="cat"><span>微分方程</span></div>
+  <div class="grid">
+    <a class="glass-1 nav-card" href="pages/direction-field.html" style="--glow-color:rgba(255,140,180,0.40)">
+      <div class="dot" style="background:rgba(255,140,180,0.60)"></div>
+      <h3>方向场</h3>
+      <div class="en">Direction Field</div>
+      <p>解曲线沿方向场流动</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/euler-method.html" style="--glow-color:rgba(255,140,180,0.40)">
+      <div class="dot" style="background:rgba(255,140,180,0.60)"></div>
+      <h3>欧拉法</h3>
+      <div class="en">Euler's Method</div>
+      <p>折线逐步逼近真实解</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/phase-plane.html" style="--glow-color:rgba(255,140,180,0.40)">
+      <div class="dot" style="background:rgba(255,140,180,0.60)"></div>
+      <h3>相平面</h3>
+      <div class="en">Phase Plane</div>
+      <p>(x, x') 轨迹族</p>
+    </a>
+    <a class="glass-1 nav-card" href="pages/spring-mass.html" style="--glow-color:rgba(255,140,180,0.40)">
+      <div class="dot" style="background:rgba(255,140,180,0.60)"></div>
+      <h3>弹簧振动</h3>
+      <div class="en">Spring-Mass</div>
+      <p>阻尼系数影响振动形态</p>
+    </a>
+  </div>
+
+  <p class="footer-text">不妙工具 · Interactive Math Visualizations</p>
+</div>
+</body>
+</html>

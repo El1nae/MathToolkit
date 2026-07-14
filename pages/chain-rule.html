@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>链式法则，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const INNERS = [
+  { label: "g=x²", expr: "x^2" }, { label: "g=2x+1", expr: "2x+1" },
+  { label: "g=sin(x)", expr: "sin(x)" }, { label: "g=x³", expr: "x^3" },
+];
+const OUTERS = [
+  { label: "f=sin(u)", expr: "sin(u)" }, { label: "f=exp(u)", expr: "exp(u)" },
+  { label: "f=u²", expr: "u^2" }, { label: "f=sqrt(u)", expr: "sqrt(u)" },
+];
+
+function App() {
+  const [gStr, setGStr] = useState("x^2");
+  const [fStr, setFStr] = useState("sin(u)");
+  const [x, setX] = useState(0.8);
+
+  const g = useMemo(() => parseExpr(gStr) || ((x) => x * x), [gStr]);
+  const fOuter = useMemo(() => parseExpr(fStr, "u") || ((u) => Math.sin(u)), [fStr]);
+  const comp = (x) => fOuter(g(x));
+
+  const xMin = -2.5, xMax = 2.5;
+  const cx = Math.max(xMin, Math.min(xMax, x));
+
+  const rG = useMemo(() => autoRange(g, xMin, xMax), [g]);
+  const gCtx = useMemo(() => createPlotContext({ W: 360, H: 150, pad: { l: 28, r: 10, t: 10, b: 20 }, xMin, xMax, yMin: rG.yMin, yMax: rG.yMax }), [rG]);
+  const rC = useMemo(() => autoRange(comp, xMin, xMax), [g, fOuter]);
+  const cCtx = useMemo(() => createPlotContext({ W: 360, H: 150, pad: { l: 28, r: 10, t: 10, b: 20 }, xMin, xMax, yMin: rC.yMin, yMax: rC.yMax }), [rC]);
+
+  const gPath = useMemo(() => buildCurvePath(g, gCtx), [g, gCtx]);
+  const cPath = useMemo(() => buildCurvePath(comp, cCtx), [g, fOuter, cCtx]);
+
+  const gp = numericalDerivative(g, cx);
+  const fp = numericalDerivative(fOuter, g(cx));
+  const total = fp * gp;
+  const u = g(cx);
+
+  return (
+    <div>
+      <PageHeader title="链式法则，动手看" subtitle="Chain rule — the derivative of a composition" />
+      <Intuition>
+        复合函数 <b style={{ color: C.fn }}>f(g(x))</b> 的变化速度，等于两层速度<b>相乘</b>：
+        外层 <b style={{ color: C.acc }}>f′(g(x))</b> 乘内层 <b style={{ color: C.fill }}>g′(x)</b>。
+        内层先动一点，外层再放大——像两个齿轮串联。
+      </Intuition>
+
+      <Card>
+        <div className="section-label" style={{ marginBottom: 6 }}>内层 g(x)</div>
+        <PresetBar presets={INNERS} onSelect={(p) => setGStr(p.expr)} />
+        <div className="section-label" style={{ marginBottom: 6, marginTop: 12 }}>外层 f(u)</div>
+        <PresetBar presets={OUTERS} onSelect={(p) => setFStr(p.expr)} />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">内层 g(x) = {gStr}，斜率 g′ = {gp.toFixed(3)}</div>
+        <svg viewBox="0 0 360 150">
+          <GridLines ctx={gCtx} />
+          <Axes ctx={gCtx} />
+          <path d={gPath} fill="none" stroke={C.fill} strokeWidth="2.2" strokeLinecap="round" />
+          <DashedMarker ctx={gCtx} x={cx} color={C.fill} label="x" bold />
+          <circle cx={gCtx.sx(cx)} cy={gCtx.sy(Math.max(gCtx.yMin, Math.min(gCtx.yMax, u)))} r="4" fill={C.fill} stroke={C.bg} strokeWidth="1.5" />
+        </svg>
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">复合 f(g(x)) = {fStr.replace("u", "(" + gStr + ")")}，斜率 = {total.toFixed(3)}</div>
+        <svg viewBox="0 0 360 150">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <GridLines ctx={cCtx} />
+          <Axes ctx={cCtx} />
+          <path d={cPath} fill="none" stroke={C.fn} strokeWidth="2.2" filter="url(#glow)" strokeLinecap="round" />
+          <line x1={cCtx.sx(cx - 0.9)} y1={cCtx.sy(comp(cx) - total * 0.9)}
+            x2={cCtx.sx(cx + 0.9)} y2={cCtx.sy(comp(cx) + total * 0.9)}
+            stroke={C.acc} strokeWidth="2" strokeLinecap="round" />
+          <DashedMarker ctx={cCtx} x={cx} color={C.acc} label="x" bold />
+          <circle cx={cCtx.sx(cx)} cy={cCtx.sy(Math.max(cCtx.yMin, Math.min(cCtx.yMax, comp(cx))))} r="4" fill={C.fn} stroke={C.bg} strokeWidth="1.5" />
+        </svg>
+        <Legend items={[{ color: C.fn, label: "f(g(x))" }, { color: C.acc, label: "切线斜率" }]} />
+      </Card>
+
+      <Card>
+        <SliderControl label="位置 x" display={cx.toFixed(2)} color={C.acc}
+          min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last />
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: 12 }}>
+          <StatTile label="g′(x)" value={gp.toFixed(2)} color={C.fill} />
+          <StatTile label="f′(g(x))" value={fp.toFixed(2)} color={C.acc} />
+          <StatTile label="乘积" value={total.toFixed(2)} color={C.fn} />
+        </div>
+      </Card>
+
+      <Card style={{ marginBottom: 0 }}>
+        <Steps title="链式法则三步" items={[
+          { title: "内层速度", en: "Inner rate", desc: "先求 g′(x)：内层变化多快", color: C.fill },
+          { title: "外层速度", en: "Outer rate", desc: "在 u=g(x) 处求 f′(u)", color: C.acc },
+          { title: "相乘", en: "Multiply", desc: "两层速度相乘 = 复合函数导数", color: C.fn },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

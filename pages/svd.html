@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SVD 奇异值分解，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+const STAGES = ["原始圆", "V^T 旋转", "Σ 缩放", "U 旋转 = A"];
+
+function App() {
+  const [m, setM] = useState([2, 1, 0, 1.5]);
+  const [step, setStep] = useState(0);
+  const [a, b, c, d] = m;
+  const ctx = createCenteredContext({ W: 360, H: 340, unit: 34 });
+  const S = useMemo(() => svd2(a, b, c, d), [a, b, c, d]);
+  const setEl = (i, v) => { const nm = m.slice(); nm[i] = parseFloat(v) || 0; setM(nm); };
+
+  const Vt = S.Vt, Sig = S.Sig, U = S.U;
+  const M = [null, Vt, mul2x2(Sig, Vt), mul2x2(U, mul2x2(Sig, Vt))][step];
+  const pts = [];
+  for (let k = 0; k <= 48; k++) {
+    const th = (k / 48) * 2 * Math.PI, x = Math.cos(th), y = Math.sin(th);
+    const p = M ? applyMat(M, x, y) : [x, y];
+    pts.push([p[0] * 2, p[1] * 2]);
+  }
+  // two singular-direction markers, transformed the same way
+  const axes = [[1, 0], [0, 1]].mapplyMat(v => { const p = M ? applyMat(M, v[0], v[1]) : v; return [p[0] * 2, p[1] * 2]; });
+  const grid = []; for (let g = -6; g <= 6; g++) grid.push(g);
+
+  return (
+    <div>
+      <PageHeader title="SVD 奇异值分解，动手看" subtitle="SVD — any matrix is rotate · scale · rotate" backHref="../index.html" />
+      <Intuition>任何矩阵都能拆成三步：<b style={{ color: C.fn }}>旋转 Vᵀ</b> → <b style={{ color: C.fill }}>沿轴缩放 Σ</b> → <b style={{ color: C.acc }}>再旋转 U</b>。单位圆先转，再被拉成椭圆，最后转到位。椭圆的两个半轴长就是<b>奇异值 σ₁, σ₂</b>。</Intuition>
+      <Card>
+        <div className="section-label" style={{ marginBottom: 8 }}>矩阵 A（2×2）</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {[0, 1, 2, 3].mapplyMat(i => <input key={i} className="num-input" type="number" step="0.5" value={m[i]} onChange={(e) => setEl(i, e.target.value)} />)}
+        </div>
+      </Card>
+      <ExampleSwitcher examples={STAGES} active={step} onChange={setStep} />
+      <Card variant="chart">
+        <svg viewBox="0 0 360 340">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          {grid.mapplyMat(g => <g key={g}>
+            <line x1={ctx.sx(g)} y1={ctx.sy(-6)} x2={ctx.sx(g)} y2={ctx.sy(6)} stroke={C.grid} strokeWidth="0.5" />
+            <line x1={ctx.sx(-6)} y1={ctx.sy(g)} x2={ctx.sx(6)} y2={ctx.sy(g)} stroke={C.grid} strokeWidth="0.5" />
+          </g>)}
+          <line x1={ctx.sx(-6)} y1={ctx.sy(0)} x2={ctx.sx(6)} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <line x1={ctx.sx(0)} y1={ctx.sy(-6)} x2={ctx.sx(0)} y2={ctx.sy(6)} stroke={C.axis} strokeWidth="1" />
+          <polygon points={pts.mapplyMat(p => ctx.sx(p[0]) + "," + ctx.sy(p[1])).join(" ")} fill={C.fillLight} stroke={step === 3 ? C.acc : C.fill} strokeWidth="2" filter="url(#glow)" />
+          <line x1={ctx.sx(0)} y1={ctx.sy(0)} x2={ctx.sx(axes[0][0])} y2={ctx.sy(axes[0][1])} stroke={C.fn} strokeWidth="2" />
+          <line x1={ctx.sx(0)} y1={ctx.sy(0)} x2={ctx.sx(axes[1][0])} y2={ctx.sy(axes[1][1])} stroke={C.acc} strokeWidth="2" />
+        </svg>
+        <Legend items={[{ color: C.fill, label: STAGES[step] }, { color: C.fn, label: "轴 1" }, { color: C.acc, label: "轴 2" }]} />
+      </Card>
+      <Card>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <StatTile label="σ₁ (最大伸缩)" value={S.s1.toFixed(2)} color={C.fill} />
+          <StatTile label="σ₂ (最小伸缩)" value={S.s2.toFixed(2)} color={C.fill} />
+        </div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>条件数 σ₁/σ₂ = <b style={{ color: C.ink }}>{(S.s2 > 1e-6 ? S.s1 / S.s2 : Infinity).toFixed(2)}</b>，越大说明矩阵越"扁"、越接近奇异。用上方按钮逐步观看分解。</div>
+      </Card>
+      <Card>
+        <Steps title="A = U Σ Vᵀ" items={[
+          { title: "Vᵀ 输入旋转", en: "orthogonal", desc: "把输入的正交方向转到坐标轴上。", color: C.fn },
+          { title: "Σ 沿轴缩放", en: "diagonal", desc: "沿 x,y 轴分别拉伸 σ₁, σ₂ 倍，圆变椭圆。", color: C.fill },
+          { title: "U 输出旋转", en: "orthogonal", desc: "把椭圆转到最终朝向，得到 Av。", color: C.acc },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

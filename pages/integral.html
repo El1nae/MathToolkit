@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>定积分，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+function App() {
+  const [exprStr, setExprStr] = useState("x^2");
+  const [xMin, setXMin] = useState(-0.5);
+  const [xMax, setXMax] = useState(2.5);
+  const [b, setB] = useState(1.5);
+
+  const validation = useMemo(() => validateInput(exprStr), [exprStr]);
+  const f = validation.fn || ((x) => x * x);
+  const isError = exprStr.trim().length > 0 && !validation.valid;
+
+  const { yMin, yMax } = useMemo(() => autoRange(f, xMin, xMax), [f, xMin, xMax]);
+  const a = (xMin < 0 && xMax > 0) ? 0 : xMin;
+  const bClamped = Math.max(xMin, Math.min(xMax, b));
+
+  const topCtx = useMemo(() => createPlotContext({
+    W: 360, H: 175, pad: { l: 26, r: 10, t: 12, b: 22 }, xMin, xMax, yMin, yMax,
+  }), [xMin, xMax, yMin, yMax]);
+
+  const curve = useMemo(() => buildCurvePath(f, topCtx), [f, topCtx]);
+  const fillFull = useMemo(() => buildFillPath(f, topCtx, xMin, xMax), [f, topCtx, xMin, xMax]);
+  const fillArea = useMemo(() => buildFillPath(f, topCtx, a, bClamped), [f, topCtx, a, bClamped]);
+  const rects = useMemo(() => buildRiemannRects(f, topCtx, a, bClamped, 24), [f, topCtx, a, bClamped]);
+  const area = useMemo(() => numericalIntegral(f, a, bClamped, 1000), [f, a, bClamped]);
+  const accum = useMemo(() => buildAccumPath(f, a, topCtx, bClamped), [f, a, topCtx, bClamped]);
+  const aCtx = accum.ctx;
+
+  const applyPreset = (p) => {
+    setExprStr(p.expr);
+    setXMin(p.xRange[0]); setXMax(p.xRange[1]);
+    setB(p.xRange[0] + (p.xRange[1] - p.xRange[0]) * 0.6);
+  };
+
+  return (
+    <div>
+      <PageHeader title="定积分，动手看" subtitle="Definite Integral — slicing area under the curve" />
+
+      <Intuition>
+        定积分就是曲线 <b>f(x)</b> 与 x 轴之间围出的 <b>面积</b>。
+        拖动上界 <b>b</b>，看着阴影面积不断累积——下方曲线 <b>F(x)</b> 记录的正是这个累积总量。
+      </Intuition>
+
+      <Card>
+        <div className="section-label" style={{ marginBottom: 8 }}>输入函数 f(x)</div>
+        <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={validation.error} />
+        <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
+        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">∫ f(x) dx，从 a={a.toFixed(2)} 到 b={bClamped.toFixed(2)} ≈ {area.toFixed(3)}</div>
+        <svg viewBox="0 0 360 175">
+          <defs dangerouslySetInnerHTML={{ __html: AREA_GRADIENT_SVG + GLOW_FILTER_SVG }} />
+          <GridLines ctx={topCtx} />
+          <Axes ctx={topCtx} />
+          <path d={fillFull} fill={C.fn} opacity="0.1" />
+          <path d={fillArea} fill="url(#areaFill)" />
+          {rects.map((r, i) => (
+            <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h}
+              fill="none" stroke={C.fill} strokeWidth="0.8" opacity="0.55" />
+          ))}
+          <path d={curve} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
+          <DashedMarker ctx={topCtx} x={a} color={C.acc} label="a" bold />
+          <DashedMarker ctx={topCtx} x={bClamped} color={C.fill} label="b" bold />
+        </svg>
+        <Legend items={[
+          { color: C.fn, label: "f(x) 曲线" },
+          { color: C.fill, label: "积分面积 area" },
+        ]} />
+      </Card>
+
+      <Card>
+        <SliderControl label="积分上界 b" value={bClamped} min={xMin} max={xMax} step={0.01}
+          display={bClamped.toFixed(2)} color={C.fill} onChange={setB}
+          hint="拖动 b，看面积如何一片片累积起来。" last />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">F(x) = ∫ₐˣ f(t) dt — 累积面积曲线</div>
+        <svg viewBox="0 0 360 150">
+          <GridLines ctx={aCtx} />
+          <Axes ctx={aCtx} />
+          <path d={accum.gray} fill="none" stroke={C.grid} strokeWidth="2.4" />
+          <path d={accum.green} fill="none" stroke={C.acc} strokeWidth="2.4" strokeLinecap="round" />
+          <DashedMarker ctx={aCtx} x={bClamped} color={C.accDim} />
+          <circle cx={aCtx.sx(bClamped)} cy={aCtx.sy(accum.Fb)} r="4" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+          <text x={aCtx.sx(bClamped)} y={aCtx.sy(accum.Fb) - 8} fontSize="10"
+            fill={C.acc} textAnchor="middle" fontFamily="var(--font-mono)" fontWeight="600">
+            F(b)={accum.Fb.toFixed(2)}
+          </text>
+        </svg>
+        <Legend items={[
+          { color: C.grid, label: "F(x) 完整曲线" },
+          { color: C.acc, label: "累积到 b accumulated" },
+        ]} />
+      </Card>
+
+      <Card style={{ marginBottom: 0 }}>
+        <Steps title="四步看懂定积分" items={[
+          { title: "选择 f(x)", en: "Choose f(x)", desc: "确定要求面积的被积函数曲线。" },
+          { title: "定区间 [a, b]", en: "Set [a, b]", desc: "选好积分下界 a 与上界 b。" },
+          { title: "切成薄片", en: "Slice", desc: "把区间分成许多细长矩形（黎曼和）。" },
+          { title: "求和取极限", en: "Sum", desc: "把所有薄片面积加起来，就是定积分。" },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>二重积分，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const CASES = [
+  { name: "x²+y²", expr: "x^2+y^2" }, { name: "sin·cos", expr: "sin(x)*cos(y)" },
+  { name: "x·y", expr: "x*y" }, { name: "e^-(x²+y²)", expr: "exp(-(x^2+y^2))" },
+];
+
+function App() {
+  const [expr, setExpr] = useState("sin(x)*cos(y)");
+  const [xMin, setXMin] = useState(-2); const [xMax, setXMax] = useState(2);
+  const [yMin, setYMin] = useState(-2); const [yMax, setYMax] = useState(2);
+  const [sliceDir, setSliceDir] = useState("x");
+  const [slice, setSlice] = useState(0);
+
+  const f = useMemo(() => parseExpr2D(expr) || ((x, y) => Math.sin(x) * Math.cos(y)), [expr]);
+
+  const NG = 20;
+  const cells = useMemo(() => {
+    const arr = []; let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < NG; i++) for (let j = 0; j < NG; j++) {
+      const x = xMin + (i + 0.5) / NG * (xMax - xMin);
+      const y = yMin + (j + 0.5) / NG * (yMax - yMin);
+      const z = f(x, y); arr.push({ i, j, z: isFinite(z) ? z : 0 });
+      if (isFinite(z)) { lo = Math.min(lo, z); hi = Math.max(hi, z); }
+    }
+    return { arr, lo, hi };
+  }, [f, xMin, xMax, yMin, yMax]);
+
+  const color = (z) => {
+    const t = cells.hi > cells.lo ? (z - cells.lo) / (cells.hi - cells.lo) : 0.5;
+    // teal(low) -> amethyst(mid) -> rose(high)
+    const r = Math.round(60 + t * 195), g = Math.round(200 - t * 120), b = Math.round(180 + t * 20);
+    return `rgb(${r},${g},${b})`;
+  };
+
+  const vol = useMemo(() => {
+    let s = 0; const dx = (xMax - xMin) / NG, dy = (yMax - yMin) / NG;
+    cells.arr.forEach((c) => { s += c.z * dx * dy; });
+    return s;
+  }, [cells, xMin, xMax, yMin, yMax]);
+
+  const W = 320, H = 320, pad = 30;
+  const gx = (i) => pad + (i / NG) * (W - 2 * pad);
+  const gy = (j) => (H - pad) - (j / NG) * (H - 2 * pad);
+  const cw = (W - 2 * pad) / NG, ch = (H - 2 * pad) / NG;
+
+  const sliceIdx = Math.round((slice + 1) / 2 * (NG - 1));
+
+  return (
+    <div>
+      <PageHeader title="二重积分，动手看" subtitle="Double integral — summing volume over a region" />
+      <Intuition>
+        二重积分把区域切成一格格小方块，每格贡献体积 <b style={{ color: C.fill }}>z·dxdy</b>。
+        热力图用颜色表示高度 <b style={{ color: C.fn }}>z=f(x,y)</b>：偏冷是低值，偏暖是高值。
+        沿 x 或 y 方向切一条<b style={{ color: C.acc }}>薄片</b>，就退化成一维积分。
+      </Intuition>
+
+      <Card>
+        <ExampleSwitcher examples={CASES.map((c) => ({ name: c.name }))}
+          active={CASES.findIndex((c) => c.expr === expr)} onChange={(i) => setExpr(CASES[i].expr)} />
+        <div className="section-label" style={{ marginBottom: 6 }}>f(x, y) =</div>
+        <FormulaInput value={expr} onChange={setExpr} placeholder="例如 x^2+y^2" />
+        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+        <RangeInputs min={yMin} max={yMax} onMinChange={setYMin} onMaxChange={setYMax} minLabel="y 最小值" maxLabel="y 最大值" />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">热力图 z = f(x,y) · 沿 {sliceDir} 方向切片</div>
+        <svg viewBox="0 0 320 320">
+          {cells.arr.map((c, k) => (
+            <rect key={k} x={gx(c.i)} y={gy(c.j + 1)} width={cw + 0.5} height={ch + 0.5} fill={color(c.z)} opacity="0.9" />
+          ))}
+          {sliceDir === "x"
+            ? <rect x={gx(sliceIdx)} y={pad} width={cw} height={H - 2 * pad} fill="none" stroke={C.ink} strokeWidth="2.5" />
+            : <rect x={pad} y={gy(sliceIdx + 1)} width={W - 2 * pad} height={ch} fill="none" stroke={C.ink} strokeWidth="2.5" />}
+          <rect x={pad} y={pad} width={W - 2 * pad} height={H - 2 * pad} fill="none" stroke={C.axis} strokeWidth="1" />
+        </svg>
+        <Legend items={[
+          { color: "rgb(60,200,180)", label: "低 z 值" },
+          { color: "rgb(255,80,200)", label: "高 z 值" },
+          { color: C.ink, label: "切片位置" },
+        ]} />
+      </Card>
+
+      <Card>
+        <ExampleSwitcher examples={[{ name: "沿 x 切" }, { name: "沿 y 切" }]}
+          active={sliceDir === "x" ? 0 : 1} onChange={(i) => setSliceDir(i === 0 ? "x" : "y")} />
+        <SliderControl label={`切片位置 (${sliceDir})`} display={slice.toFixed(2)} color={C.acc}
+          min={-1} max={1} step={0.02} value={slice} onChange={setSlice} last
+          hint="切一条薄片，二重积分就退化为一重积分" />
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr", marginTop: 12 }}>
+          <StatTile label="∬f dA 体积 (黎曼近似)" value={vol.toFixed(3)} color={C.fill} />
+        </div>
+      </Card>
+
+      <Card style={{ marginBottom: 0 }}>
+        <Steps title="二重积分三步" items={[
+          { title: "铺网格", en: "Grid", desc: "把区域分成许多小方块 dxdy", color: C.fn },
+          { title: "算高度", en: "Height z", desc: "每格体积 = z·dxdy，颜色表示 z", color: C.fill },
+          { title: "累加", en: "Sum", desc: "所有小柱体积相加 = ∬f dA", color: C.acc },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

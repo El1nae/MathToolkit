@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>线性变换，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+function App() {
+  const [a, setA] = useState(1), [b, setB] = useState(0.5);
+  const [c, setC] = useState(0.3), [d, setD] = useState(1);
+  const ctx = createCenteredContext({ W: 360, H: 340, unit: 30 });
+  const det = a * d - b * c;
+  const T = (x, y) => [a * x + b * y, c * x + d * y];
+  const grid = []; for (let g = -5; g <= 5; g++) grid.push(g);
+  // transformed grid lines
+  const tlines = [];
+  for (let g = -5; g <= 5; g++) {
+    const h1 = T(-5, g), h2 = T(5, g), v1 = T(g, -5), v2 = T(g, 5);
+    tlines.push({ x1: h1, x2: h2, k: "h" + g }, { x1: v1, x2: v2, k: "v" + g });
+  }
+  const sq = [[0, 0], [1, 0], [1, 1], [0, 1]].map(p => T(p[0], p[1]));
+
+  return (
+    <div>
+      <PageHeader title="线性变换，动手看" subtitle="Linear transformation — the grid warps, lines stay straight" backHref="../index.html" />
+      <Intuition>矩阵 A 把整个平面拉成新形状：<b style={{ color: C.fn }}>基向量 î, ĵ</b> 变成矩阵的两列，网格线保持平行且等距。<b style={{ color: C.fill }}>单位方格</b>的新面积就是 <b>行列式 det(A)</b>，负值表示翻转了朝向。</Intuition>
+      <Card variant="chart">
+        <svg viewBox="0 0 360 340">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          {grid.map(g => <g key={"o" + g}>
+            <line x1={ctx.sx(g)} y1={ctx.sy(-5)} x2={ctx.sx(g)} y2={ctx.sy(5)} stroke={C.grid} strokeWidth="0.5" />
+            <line x1={ctx.sx(-5)} y1={ctx.sy(g)} x2={ctx.sx(5)} y2={ctx.sy(g)} stroke={C.grid} strokeWidth="0.5" />
+          </g>)}
+          {tlines.map(l => <line key={l.k} x1={ctx.sx(l.x1[0])} y1={ctx.sy(l.x1[1])} x2={ctx.sx(l.x2[0])} y2={ctx.sy(l.x2[1])} stroke={C.fn} strokeWidth="0.6" opacity="0.35" />)}
+          <line x1={ctx.sx(-5)} y1={ctx.sy(0)} x2={ctx.sx(5)} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <line x1={ctx.sx(0)} y1={ctx.sy(-5)} x2={ctx.sx(0)} y2={ctx.sy(5)} stroke={C.axis} strokeWidth="1" />
+          <polygon points={sq.map(p => ctx.sx(p[0]) + "," + ctx.sy(p[1])).join(" ")} fill={C.fill} opacity="0.3" stroke={C.fill} strokeWidth="1.5" />
+          <Arrow ctx={ctx} x={a} y={c} color={C.fn} />
+          <Arrow ctx={ctx} x={b} y={d} color={C.acc} />
+        </svg>
+        <Legend items={[{ color: C.fn, label: "î → (a,c)" }, { color: C.acc, label: "ĵ → (b,d)" }, { color: C.fill, label: "单位方格" }]} />
+      </Card>
+      <Card>
+        <SliderControl label="a" display={a.toFixed(2)} color={C.fn} min={-3} max={3} step={0.05} value={a} onChange={setA} />
+        <SliderControl label="b" display={b.toFixed(2)} color={C.acc} min={-3} max={3} step={0.05} value={b} onChange={setB} />
+        <SliderControl label="c" display={c.toFixed(2)} color={C.fn} min={-3} max={3} step={0.05} value={c} onChange={setC} />
+        <SliderControl label="d" display={d.toFixed(2)} color={C.acc} min={-3} max={3} step={0.05} value={d} onChange={setD} last />
+      </Card>
+      <Card>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr" }}>
+          <StatTile label="行列式 det(A) = ad − bc" value={det.toFixed(3)} color={C.fill} />
+        </div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>{Math.abs(det) < 0.03 ? "det≈0：平面被压成一条线，变换不可逆。" : det < 0 ? "det<0：朝向被翻转（镜像）。" : "det>0：保持朝向，面积放大 " + Math.abs(det).toFixed(2) + " 倍。"}</div>
+      </Card>
+      <Card>
+        <Steps title="三步看懂矩阵" items={[
+          { title: "看列向量", en: "columns = î,ĵ", desc: "矩阵两列就是基向量的落点。", color: C.fn },
+          { title: "线性组合", en: "Av = xî + yĵ", desc: "任意点是基向量的线性组合。", color: C.acc },
+          { title: "读行列式", en: "det = 面积比", desc: "单位方格面积的缩放倍数与朝向。", color: C.fill },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>参数曲线，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+const CURVES = [
+  { name: "圆", xExpr: "cos(t)", yExpr: "sin(t)", tMax: 6.28 },
+  { name: "李萨如", xExpr: "sin(3t)", yExpr: "sin(2t)", tMax: 6.28 },
+  { name: "螺线", xExpr: "t*cos(t)/6", yExpr: "t*sin(t)/6", tMax: 12.5 },
+  { name: "心形", xExpr: "16sin(t)^3/12", yExpr: "(13cos(t)-5cos(2t)-2cos(3t)-cos(4t))/12", tMax: 6.28 },
+];
+
+function App() {
+  const [xExpr, setXExpr] = useState("sin(3t)");
+  const [yExpr, setYExpr] = useState("sin(2t)");
+  const [tMax, setTMax] = useState(6.28);
+  const [t, setT] = useState(3);
+
+  const xf = useMemo(() => parseExpr(xExpr, "t") || ((t) => Math.cos(t)), [xExpr]);
+  const yf = useMemo(() => parseExpr(yExpr, "t") || ((t) => Math.sin(t)), [yExpr]);
+  const ct = Math.max(0, Math.min(tMax, t));
+
+  const ctx = useMemo(() => createCenteredContext({ W: 360, H: 300, unit: 110 }), []);
+
+  const fullPath = useMemo(() => {
+    let d = ""; const N = 600;
+    for (let i = 0; i <= N; i++) { const tt = (i / N) * tMax; const px = xf(tt), py = yf(tt); if (!isFinite(px) || !isFinite(py)) { d += " "; continue; } d += (i === 0 ? "M" : "L") + ctx.sx(px).toFixed(1) + " " + ctx.sy(py).toFixed(1) + " "; }
+    return d;
+  }, [xf, yf, tMax, ctx]);
+
+  const tracePath = useMemo(() => {
+    let d = "", started = false; const N = 600;
+    for (let i = 0; i <= N; i++) { const tt = (i / N) * tMax; if (tt > ct) break; const px = xf(tt), py = yf(tt); if (!isFinite(px) || !isFinite(py)) { started = false; continue; } d += (!started ? "M" : "L") + ctx.sx(px).toFixed(1) + " " + ctx.sy(py).toFixed(1) + " "; started = true; }
+    return d;
+  }, [xf, yf, tMax, ct, ctx]);
+
+  const px = xf(ct), py = yf(ct);
+  const applyCurve = (c) => { setXExpr(c.xExpr); setYExpr(c.yExpr); setTMax(c.tMax); setT(c.tMax * 0.5); };
+
+  return (
+    <div>
+      <PageHeader title="参数曲线，动手看" subtitle="Parametric curves — a point moving over time t" />
+      <Intuition>
+        不再是 y=f(x)，而是让 <b style={{ color: C.fn }}>x(t)</b> 与 <b style={{ color: C.acc }}>y(t)</b>
+        随参数 t 各自变化。想象一个点在平面上<b>运动</b>，t 是时间，
+        它走过的<b style={{ color: C.fill }}>轨迹</b>就是参数曲线。拖动 t 看它逐段画出。
+      </Intuition>
+
+      <Card>
+        <ExampleSwitcher examples={CURVES.map((c) => ({ name: c.name }))}
+          active={CURVES.findIndex((c) => c.xExpr === xExpr)} onChange={(i) => applyCurve(CURVES[i])} />
+        <div className="section-label" style={{ marginBottom: 6 }}>x(t) =</div>
+        <FormulaInput value={xExpr} onChange={setXExpr} placeholder="例如 cos(t)" />
+        <div className="section-label" style={{ marginBottom: 6, marginTop: 10 }}>y(t) =</div>
+        <FormulaInput value={yExpr} onChange={setYExpr} placeholder="例如 sin(t)" />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">t = {ct.toFixed(2)} · 点位置 ({px.toFixed(2)}, {py.toFixed(2)})</div>
+        <svg viewBox="0 0 360 300">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <line x1="0" y1={ctx.sy(0)} x2="360" y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+          <line x1={ctx.sx(0)} y1="0" x2={ctx.sx(0)} y2="300" stroke={C.axis} strokeWidth="1" />
+          <path d={fullPath} fill="none" stroke={C.ghost} strokeWidth="1.2" strokeDasharray="3 4" />
+          <path d={tracePath} fill="none" stroke={C.fill} strokeWidth="2.6" filter="url(#glow)" strokeLinecap="round" />
+          {isFinite(px) && isFinite(py) && (
+            <circle cx={ctx.sx(px)} cy={ctx.sy(py)} r="5.5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+          )}
+        </svg>
+        <Legend items={[
+          { color: C.ghost, label: "完整轨迹", dashed: true },
+          { color: C.fill, label: "已描绘 (到 t)" },
+          { color: C.acc, label: "当前动点" },
+        ]} />
+      </Card>
+
+      <Card>
+        <SliderControl label="参数 t" display={ct.toFixed(2)} color={C.acc}
+          min={0} max={tMax} step={0.01} value={ct} onChange={setT} last
+          hint="拖动 t，看动点沿轨迹一路画过来" />
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+          <StatTile label="x(t)" value={px.toFixed(3)} color={C.fn} />
+          <StatTile label="y(t)" value={py.toFixed(3)} color={C.acc} />
+        </div>
+      </Card>
+
+      <Card style={{ marginBottom: 0 }}>
+        <Steps title="参数曲线三步" items={[
+          { title: "两个函数", en: "x(t), y(t)", desc: "横纵坐标各由 t 独立控制", color: C.fn },
+          { title: "让 t 走", en: "Move t", desc: "t 增大，动点在平面上移动", color: C.acc },
+          { title: "看轨迹", en: "Trace", desc: "动点走过的路径就是曲线", color: C.fill },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

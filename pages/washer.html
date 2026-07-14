@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>垫圈法，动手看</title>
+<link rel="stylesheet" href="../ui/theme.css" />
+<link rel="stylesheet" href="../ui/components.css" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="../engine/parser.js"></script>
+<script src="../engine/math.js"></script>
+<script src="../engine/keyboard.js"></script>
+<script src="../engine/plot.js"></script>
+<script src="../engine/linalg.js"></script>
+<script src="../engine/signal.js"></script>
+<script src="../engine/ode.js"></script>
+<script src="../ui/components.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+function App() {
+  const [fStr, setFStr] = useState("sqrt(x)");
+  const [gStr, setGStr] = useState("x^2/4");
+  const [xMin, setXMin] = useState(0);
+  const [xMax, setXMax] = useState(4);
+  const [x, setX] = useState(2);
+
+  const fc = useMemo(() => validateInput(fStr), [fStr]);
+  const gc = useMemo(() => validateInput(gStr), [gStr]);
+  const f = fc.fn || ((x) => Math.sqrt(x));   // outer (larger)
+  const g = gc.fn || ((x) => x * x / 4);      // inner (smaller)
+  const cx = Math.max(xMin, Math.min(xMax, x));
+
+  const yMax = useMemo(() => { let m = 0.5; for (let i = 0; i <= 100; i++) { const xx = xMin + i / 100 * (xMax - xMin); [f, g].forEach((fn) => { const v = Math.abs(fn(xx)); if (isFinite(v) && v > m) m = v; }); } return m * 1.15; }, [f, g, xMin, xMax]);
+  const ctx = useMemo(() => createPlotContext({ W: 360, H: 220, xMin, xMax, yMin: -yMax * 0.15, yMax }), [xMin, xMax, yMax]);
+
+  const R = Math.abs(f(cx)), r = Math.abs(g(cx));
+  const Rout = Math.max(R, r), rin = Math.min(R, r);
+
+  const vol = useMemo(() => {
+    const integrand = (t) => Math.PI * Math.abs(f(t) * f(t) - g(t) * g(t));
+    return numericalIntegral(integrand, xMin, cx, 400);
+  }, [f, g, xMin, cx]);
+
+  const applyF = (p) => setFStr(p.expr);
+  const applyG = (p) => setGStr(p.expr);
+
+  return (
+    <div>
+      <PageHeader title="垫圈法，动手看" subtitle="Washer method — volume between two curves" />
+      <Intuition>
+        两条曲线 <b style={{ color: C.fn }}>f</b>（外）与 <b style={{ color: C.fill }}>g</b>（内）之间的区域绕 x 轴旋转，
+        每个切片是一个<b>圆环垫圈</b>：面积 π(R²−r²)。
+        外圆 R=f(x)，内圆 r=g(x)，累加所有垫圈得到体积。
+      </Intuition>
+
+      <Card>
+        <div className="section-label" style={{ marginBottom: 6 }}>外层 f(x)</div>
+        <FormulaInput value={fStr} onChange={setFStr} isError={fStr.trim() && !fc.valid} errorMsg={fc.error} />
+        <PresetBar presets={PRESETS.slice(0, 6)} onSelect={applyF} />
+        <div className="section-label" style={{ marginBottom: 6, marginTop: 12 }}>内层 g(x)</div>
+        <FormulaInput value={gStr} onChange={setGStr} isError={gStr.trim() && !gc.valid} errorMsg={gc.error} />
+        <PresetBar presets={PRESETS.slice(0, 6)} onSelect={applyG} />
+        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+      </Card>
+
+      <Card variant="chart">
+        <div className="chart-label">垫圈切片 @ x = {cx.toFixed(2)} · π(R²−r²)</div>
+        <svg viewBox="0 0 360 220">
+          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+          <GridLines ctx={ctx} />
+          <Axes ctx={ctx} />
+          <path d={buildBetweenPath(f, g, ctx)} fill={C.fill} opacity="0.1" />
+          <path d={buildCurvePath(f, ctx)} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
+          <path d={buildCurvePath(g, ctx)} fill="none" stroke={C.fill} strokeWidth="2" strokeLinecap="round" />
+          {/* washer cross-section as concentric ellipses */}
+          <ellipse cx={ctx.sx(cx)} cy={ctx.sy(0)} rx="9" ry={ctx.sy(0) - ctx.sy(Rout)}
+            fill={C.acc} fillOpacity="0.14" stroke={C.acc} strokeWidth="2" />
+          <ellipse cx={ctx.sx(cx)} cy={ctx.sy(0)} rx="5" ry={ctx.sy(0) - ctx.sy(rin)}
+            fill={C.bg} stroke={C.warn} strokeWidth="1.6" />
+          <DashedMarker ctx={ctx} x={cx} color={C.acc} label="x" bold />
+        </svg>
+        <Legend items={[
+          { color: C.fn, label: "外 f (R)" },
+          { color: C.fill, label: "内 g (r)" },
+          { color: C.acc, label: "垫圈环" },
+        ]} />
+      </Card>
+
+      <Card>
+        <SliderControl label="切片位置 x" display={cx.toFixed(2)} color={C.acc}
+          min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last />
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: 12 }}>
+          <StatTile label="外半径 R" value={R.toFixed(2)} color={C.fn} />
+          <StatTile label="内半径 r" value={r.toFixed(2)} color={C.fill} />
+          <StatTile label="体积 (到 x)" value={vol.toFixed(2)} color={C.acc} />
+        </div>
+      </Card>
+
+      <Card style={{ marginBottom: 0 }}>
+        <Steps title="垫圈法三步" items={[
+          { title: "定内外", en: "Two radii", desc: "外圆 R=f(x)，内圆 r=g(x)", color: C.fn },
+          { title: "切垫圈", en: "Washer", desc: "切片面积 = π(R²−r²)，挖掉中心圆", color: C.acc },
+          { title: "累加", en: "Sum", desc: "体积 = π∫(f²−g²)dx", color: C.fill },
+        ]} />
+      </Card>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
