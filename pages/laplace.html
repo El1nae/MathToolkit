@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>拉普拉斯变换，动手看</title>
+<title>拉普拉斯变换</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -41,8 +41,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="拉普拉斯变换，动手看" subtitle="Laplace — poles decide how a system responds" backHref="../index.html" />
-      <Intuition>系统的行为由 <b>s 平面</b>上的<b style={{ color: C.warn }}>极点</b>位置决定。极点的<b>实部 σ</b> 控制衰减还是发散（左半平面=稳定衰减），<b>虚部 ω</b> 控制振荡快慢。右边就是这对极点对应的时域响应 e^(σt)cos(ωt)。</Intuition>
+      <PageHeader title="拉普拉斯变换" subtitle="Laplace — poles decide how a system responds" backHref="../index.html" />
+      <Intuition>系统的动态特性由 <b>s 平面</b>上<b style={{ color: C.warn }}>极点</b>的位置决定。极点<b>实部 σ</b> 决定响应的衰减或发散（左半平面对应衰减，即稳定），<b>虚部 ω</b> 决定振荡频率。右侧为该对共轭极点对应的时域响应 e^(σt)cos(ωt)。</Intuition>
       <Card variant="chart">
         <div className="chart-label">s 平面（极点 ×）</div>
         <svg viewBox="0 0 360 300">
@@ -78,13 +78,13 @@ function App() {
         <SliderControl label="极点虚部 ω" display={omega.toFixed(2)} color={C.fn} min={0} max={6} step={0.05} value={omega} onChange={setOmega} last />
       </Card>
       <Card>
-        <div style={{ fontSize: 13, color: C.sub }}>当前系统：<b style={{ color: marginal ? C.warn : stable ? C.acc : C.warn }}>{marginal ? "临界（等幅振荡）" : stable ? "稳定（响应衰减到 0）" : "不稳定（响应发散）"}</b>。极点越靠左衰减越快，虚部越大振荡越密。</div>
+        <div style={{ fontSize: 13, color: C.sub }}>当前系统：<b style={{ color: marginal ? C.warn : stable ? C.acc : C.warn }}>{marginal ? "临界（等幅振荡）" : stable ? "稳定（响应衰减至 0）" : "不稳定（响应发散）"}</b>。极点越靠左衰减越快，虚部越大振荡频率越高。</div>
       </Card>
       <Card>
-        <Steps title="三步读极点" items={[
-          { title: "定位极点", en: "s = σ ± jω", desc: "分母为零的点，决定系统固有模态。", color: C.warn },
+        <Steps title="极点分析三步" items={[
+          { title: "定位极点", en: "s = σ ± jω", desc: "传递函数分母的零点，决定系统固有模态。", color: C.warn },
           { title: "看实部", en: "Re(s) = σ", desc: "σ<0 衰减稳定，σ>0 发散不稳定。", color: C.acc },
-          { title: "看虚部", en: "Im(s) = ω", desc: "ω 决定振荡频率，越大抖得越快。", color: C.fn },
+          { title: "看虚部", en: "Im(s) = ω", desc: "ω 决定振荡频率，越大振荡越快。", color: C.fn },
         ]} />
       </Card>
     </div>

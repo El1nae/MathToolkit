@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>定积分，动手看</title>
+<title>定积分</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -57,11 +57,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="定积分，动手看" subtitle="Definite Integral — slicing area under the curve" />
+      <PageHeader title="定积分" subtitle="Definite Integral — slicing area under the curve" />
 
       <Intuition>
-        定积分就是曲线 <b>f(x)</b> 与 x 轴之间围出的 <b>面积</b>。
-        拖动上界 <b>b</b>，看着阴影面积不断累积——下方曲线 <b>F(x)</b> 记录的正是这个累积总量。
+        定积分为曲线 <b>f(x)</b> 与 x 轴之间围成的 <b>面积</b>。
+        增大上界 <b>b</b>，阴影面积随之累积；下方曲线 <b>F(x)</b> 即该累积量随 b 的变化。
       </Intuition>
 
       <Card>
@@ -96,7 +96,7 @@ function App() {
       <Card>
         <SliderControl label="积分上界 b" value={bClamped} min={xMin} max={xMax} step={0.01}
           display={bClamped.toFixed(2)} color={C.fill} onChange={setB}
-          hint="拖动 b，看面积如何一片片累积起来。" last />
+          hint="增大 b，观察面积随黎曼分片逐段累积" last />
       </Card>
 
       <Card variant="chart">
@@ -120,11 +120,11 @@ function App() {
       </Card>
 
       <Card style={{ marginBottom: 0 }}>
-        <Steps title="四步看懂定积分" items={[
-          { title: "选择 f(x)", en: "Choose f(x)", desc: "确定要求面积的被积函数曲线。" },
-          { title: "定区间 [a, b]", en: "Set [a, b]", desc: "选好积分下界 a 与上界 b。" },
-          { title: "切成薄片", en: "Slice", desc: "把区间分成许多细长矩形（黎曼和）。" },
-          { title: "求和取极限", en: "Sum", desc: "把所有薄片面积加起来，就是定积分。" },
+        <Steps title="定积分的构造" items={[
+          { title: "选择 f(x)", en: "Choose f(x)", desc: "确定被积函数曲线。" },
+          { title: "定区间 [a, b]", en: "Set [a, b]", desc: "确定积分下界 a 与上界 b。" },
+          { title: "黎曼分片", en: "Slice", desc: "将区间分割为若干细矩形，构成黎曼和。" },
+          { title: "求和取极限", en: "Sum", desc: "分片数趋于无穷，和的极限即定积分。" },
         ]} />
       </Card>
     </div>

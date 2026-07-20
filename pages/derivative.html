@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>微分 / 导数，动手看</title>
+<title>微分 / 导数</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -60,11 +60,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="微分 / 导数，动手看" subtitle="Derivative — the slope of the tangent line" />
+      <PageHeader title="微分 / 导数" subtitle="Derivative — the slope of the tangent line" />
 
       <Intuition>
-        先用 <b style={{ color: C.fill }}>割线</b> 连接相距 Δx 的两点，斜率是平均变化率 Δy/Δx；
-        当 Δx → 0，割线逐渐贴合曲线，最终变成 <b style={{ color: C.fn }}>切线</b>，斜率就是导数 f′(x₀)。
+        <b style={{ color: C.fill }}>割线</b> 连接相距 Δx 的两点，其斜率为平均变化率 Δy/Δx。
+        当 Δx → 0，割线收敛为 <b style={{ color: C.fn }}>切线</b>，其斜率即导数 f′(x₀)。
       </Intuition>
 
       <Card>
@@ -105,7 +105,7 @@ function App() {
           min={xMin} max={xMax} step={0.01} value={cx0} onChange={setX0} />
         <SliderControl label="Δx 间距" display={dx.toFixed(2)} color={C.fill}
           min={0.01} max={2.0} step={0.01} value={dx} onChange={setDx} last
-          hint="把 Δx 拖到很小，看割线如何贴合成切线" />
+          hint="减小 Δx，观察割线斜率收敛到切线斜率" />
       </Card>
 
       <Card>
@@ -115,15 +115,15 @@ function App() {
         </div>
         <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>
           误差 |Δy/Δx − f′(x₀)| = <b style={{ color: C.ink }}>{err.toFixed(4)}</b>
-          ，Δx 越小误差越接近 0，割线斜率就收敛到导数。
+          。Δx 越小，误差趋于 0，割线斜率收敛到导数。
         </div>
       </Card>
 
       <Card>
-        <Steps title="三步理解导数" items={[
-          { title: "取两点", en: "Pick two points", desc: "在曲线上取 x₀ 和 x₀+Δx 两个点", color: C.acc },
-          { title: "画割线", en: "Draw secant", desc: "连接两点的直线，斜率 = Δy/Δx", color: C.fill },
-          { title: "Δx → 0", en: "", desc: "让间距趋近零，割线变成切线，斜率就是导数", color: C.fn },
+        <Steps title="导数的构造" items={[
+          { title: "取两点", en: "Pick two points", desc: "在曲线上取 x₀ 与 x₀+Δx", color: C.acc },
+          { title: "作割线", en: "Draw secant", desc: "两点连线，斜率为 Δy/Δx", color: C.fill },
+          { title: "Δx → 0", en: "", desc: "间距趋于零，割线收敛为切线，斜率即导数", color: C.fn },
         ]} />
       </Card>
     </div>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>正交分解，动手看</title>
+<title>正交分解</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -38,8 +38,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="正交分解，动手看" subtitle="Orthogonal decomposition — split v into two axes" backHref="../index.html" />
-      <Intuition>任何向量 <b style={{ color: C.fn }}>v</b> 都能唯一拆成沿基方向 <b style={{ color: C.fill }}>u</b> 的分量加上垂直方向 <b style={{ color: C.acc }}>w</b> 的分量：<b>v = c₁u + c₂w</b>。这就是坐标系旋转的本质——换一组正交基看同一个向量。</Intuition>
+      <PageHeader title="正交分解" subtitle="Orthogonal decomposition — split v into two axes" backHref="../index.html" />
+      <Intuition>任意向量 <b style={{ color: C.fn }}>v</b> 可唯一分解为沿基方向 <b style={{ color: C.fill }}>u</b> 的分量与沿垂直方向 <b style={{ color: C.acc }}>w</b> 的分量之和：<b>v = c₁u + c₂w</b>。此即坐标系旋转的本质——在另一组正交基下表示同一向量。</Intuition>
       <Card variant="chart">
         <svg viewBox="0 0 360 340">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
@@ -66,13 +66,13 @@ function App() {
           <StatTile label="c₁ (沿 u)" value={cPar.toFixed(2)} color={C.fill} />
           <StatTile label="c₂ (沿 w)" value={cPerp.toFixed(2)} color={C.acc} />
         </div>
-        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>验证：c₁²+c₂² = {(cPar * cPar + cPerp * cPerp).toFixed(2)} = |v|² = {(vx * vx + vy * vy).toFixed(2)}。长度在换基后保持不变。</div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>验证：c₁²+c₂² = {(cPar * cPar + cPerp * cPerp).toFixed(2)} = |v|² = {(vx * vx + vy * vy).toFixed(2)}。换基后长度保持不变。</div>
       </Card>
       <Card>
         <Steps title="三步正交分解" items={[
-          { title: "选正交基", en: "u ⊥ w", desc: "取夹角 θ 的方向 u 和它的垂线 w。", color: C.fn },
-          { title: "投影取分量", en: "cᵢ = v·基", desc: "点积得到 v 在每个基上的坐标。", color: C.fill },
-          { title: "重组", en: "v = c₁u + c₂w", desc: "两分量向量相加还原出 v。", color: C.acc },
+          { title: "选取正交基", en: "u ⊥ w", desc: "取夹角 θ 的方向 u 及其垂线 w。", color: C.fn },
+          { title: "投影取分量", en: "cᵢ = v·基", desc: "由点积得到 v 在各基上的坐标。", color: C.fill },
+          { title: "重组", en: "v = c₁u + c₂w", desc: "两分量向量相加还原 v。", color: C.acc },
         ]} />
       </Card>
     </div>

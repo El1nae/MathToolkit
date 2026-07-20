@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>不妙工具</title>
+<title>MathToolkit</title>
 <link rel="stylesheet" href="ui/theme.css" />
 <link rel="stylesheet" href="ui/components.css" />
 <style>
 body{min-height:100vh;padding:72px 28px 60px}
 .wrap{max-width:680px;margin:0 auto;text-align:center}
 .logo{margin-bottom:8px}
-h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
+h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px;text-shadow:0 0 22px rgba(255,255,255,0.38),0 0 50px rgba(120,150,255,0.20)}
 .sub{font-size:13px;color:var(--text-3);margin-bottom:36px}
 .cat{display:flex;align-items:center;gap:10px;margin:24px 0 10px;text-align:left}
 .cat span{font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-4)}
@@ -25,8 +25,8 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
     <path d="M10 34 Q18 8 26 24 T42 14" fill="none" stroke="rgba(100,140,255,0.90)" stroke-width="2.5" stroke-linecap="round"/>
     <circle cx="26" cy="24" r="3" fill="rgba(160,100,255,0.80)"/>
   </svg>
-  <h1>不妙工具</h1>
-  <p class="sub">Interactive Math Visualizations — 拖一拖滑块，直觉就来了</p>
+  <h1>MathToolkit</h1>
+  <p class="sub">Interactive Math Visualizations — 拖动参数即时观察概念的变化</p>
 
   <div class="cat"><span>微积分基础</span></div>
   <div class="grid">
@@ -34,13 +34,13 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
       <h3>微分 / 导数</h3>
       <div class="en">Derivative</div>
-      <p>割线逼近切线，看瞬时变化率</p>
+      <p>割线趋于切线，得到瞬时变化率</p>
     </a>
     <a class="glass-1 nav-card" href="pages/integral.html" style="--glow-color:rgba(100,140,255,0.45)">
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
       <h3>定积分</h3>
       <div class="en">Definite Integral</div>
-      <p>输入公式，看面积累积</p>
+      <p>由函数表达式计算面积累积</p>
     </a>
     <a class="glass-1 nav-card" href="pages/taylor.html" style="--glow-color:rgba(100,140,255,0.45)">
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
@@ -52,37 +52,37 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
       <h3>基本定理</h3>
       <div class="en">FTC</div>
-      <p>积分的导数 = 原函数</p>
+      <p>积分函数的导数等于被积函数</p>
     </a>
     <a class="glass-1 nav-card" href="pages/chain-rule.html" style="--glow-color:rgba(100,140,255,0.45)">
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
       <h3>链式法则</h3>
       <div class="en">Chain Rule</div>
-      <p>齿轮联动看复合函数</p>
+      <p>复合函数导数为各层导数之积</p>
     </a>
     <a class="glass-1 nav-card" href="pages/mvt.html" style="--glow-color:rgba(100,140,255,0.45)">
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
       <h3>中值定理</h3>
       <div class="en">MVT</div>
-      <p>切线平行于割线的点</p>
+      <p>存在一点切线平行于割线</p>
     </a>
     <a class="glass-1 nav-card" href="pages/fourier-series.html" style="--glow-color:rgba(100,140,255,0.45)">
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
       <h3>傅里叶级数</h3>
       <div class="en">Fourier Series</div>
-      <p>正弦波叠加拼出任意波形</p>
+      <p>正弦波叠加逼近任意周期波形</p>
     </a>
     <a class="glass-1 nav-card" href="pages/improper-integral.html" style="--glow-color:rgba(100,140,255,0.45)">
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
       <h3>反常积分</h3>
       <div class="en">Improper Integral</div>
-      <p>上限→∞，面积收敛？</p>
+      <p>积分上限趋于无穷时的收敛性</p>
     </a>
     <a class="glass-1 nav-card" href="pages/u-substitution.html" style="--glow-color:rgba(100,140,255,0.45)">
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
       <h3>换元积分</h3>
       <div class="en">u-Substitution</div>
-      <p>坐标变换，面积守恒</p>
+      <p>变量替换下的积分不变性</p>
     </a>
     <a class="glass-1 nav-card" href="pages/parametric.html" style="--glow-color:rgba(100,140,255,0.45)">
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
@@ -94,7 +94,7 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
       <h3>极坐标面积</h3>
       <div class="en">Polar Area</div>
-      <p>扇形扫出面积</p>
+      <p>极坐标下扇形扫过的面积</p>
     </a>
   </div>
 
@@ -104,37 +104,37 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
       <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
       <h3>卷积积分</h3>
       <div class="en">Convolution</div>
-      <p>翻转、平移、相乘、积分</p>
+      <p>翻转、平移、相乘、积分四步运算</p>
     </a>
     <a class="glass-1 nav-card" href="pages/disk-method.html" style="--glow-color:rgba(38,166,154,0.45)">
       <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
       <h3>圆盘法</h3>
       <div class="en">Disk Method</div>
-      <p>绕 x 轴旋转体体积</p>
+      <p>绕 x 轴旋转所得立体的体积</p>
     </a>
     <a class="glass-1 nav-card" href="pages/shell-method.html" style="--glow-color:rgba(38,166,154,0.45)">
       <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
       <h3>柱壳法</h3>
       <div class="en">Shell Method</div>
-      <p>绕 y 轴旋转体体积</p>
+      <p>绕 y 轴旋转所得立体的体积</p>
     </a>
     <a class="glass-1 nav-card" href="pages/washer.html" style="--glow-color:rgba(38,166,154,0.45)">
       <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
       <h3>垫圈法</h3>
       <div class="en">Washer Method</div>
-      <p>环形截面旋转体</p>
+      <p>环形截面构成的旋转体体积</p>
     </a>
     <a class="glass-1 nav-card" href="pages/surface-revolution.html" style="--glow-color:rgba(38,166,154,0.45)">
       <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
       <h3>旋转体表面积</h3>
       <div class="en">Surface of Revolution</div>
-      <p>环带展开算侧面积</p>
+      <p>环带累加得到旋转体侧面积</p>
     </a>
     <a class="glass-1 nav-card" href="pages/double-integral.html" style="--glow-color:rgba(38,166,154,0.45)">
       <div class="dot" style="background:rgba(38,166,154,0.65)"></div>
       <h3>二重积分</h3>
       <div class="en">Double Integral</div>
-      <p>热力图 + 截面叠加</p>
+      <p>热力图与截面叠加表示体积</p>
     </a>
   </div>
 
@@ -144,43 +144,43 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
       <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
       <h3>特征值</h3>
       <div class="en">Eigenvalue</div>
-      <p>方向不变的向量</p>
+      <p>变换下方向保持不变的向量</p>
     </a>
     <a class="glass-1 nav-card" href="pages/linear-transform.html" style="--glow-color:rgba(100,140,255,0.35)">
       <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
       <h3>线性变换</h3>
       <div class="en">Linear Transform</div>
-      <p>网格实时形变</p>
+      <p>矩阵作用下网格的实时形变</p>
     </a>
     <a class="glass-1 nav-card" href="pages/projection.html" style="--glow-color:rgba(100,140,255,0.35)">
       <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
       <h3>向量投影</h3>
       <div class="en">Projection</div>
-      <p>向量的"影子"</p>
+      <p>向量在另一向量上的分量</p>
     </a>
     <a class="glass-1 nav-card" href="pages/dot-product.html" style="--glow-color:rgba(100,140,255,0.35)">
       <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
       <h3>点积</h3>
       <div class="en">Dot Product</div>
-      <p>投影 × 长度 = 标量</p>
+      <p>投影长度与模长之积，结果为标量</p>
     </a>
     <a class="glass-1 nav-card" href="pages/cross-product.html" style="--glow-color:rgba(100,140,255,0.35)">
       <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
       <h3>叉积</h3>
       <div class="en">Cross Product</div>
-      <p>平行四边形面积</p>
+      <p>模长等于两向量张成的平行四边形面积</p>
     </a>
     <a class="glass-1 nav-card" href="pages/orthogonal.html" style="--glow-color:rgba(100,140,255,0.35)">
       <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
       <h3>正交分解</h3>
       <div class="en">Orthogonal</div>
-      <p>基向量分量之和</p>
+      <p>向量沿正交基的分量之和</p>
     </a>
     <a class="glass-1 nav-card" href="pages/svd.html" style="--glow-color:rgba(100,140,255,0.35)">
       <div class="dot" style="background:rgba(100,140,255,0.50)"></div>
       <h3>SVD 分解</h3>
       <div class="en">SVD</div>
-      <p>旋转→缩放→旋转</p>
+      <p>任意矩阵分解为旋转—缩放—旋转</p>
     </a>
   </div>
 
@@ -190,13 +190,13 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
       <div class="dot" style="background:rgba(160,100,255,0.65)"></div>
       <h3>傅里叶变换</h3>
       <div class="en">Fourier Transform</div>
-      <p>时域 ↔ 频域联动</p>
+      <p>时域与频域的相互对应</p>
     </a>
     <a class="glass-1 nav-card" href="pages/laplace.html" style="--glow-color:rgba(160,100,255,0.40)">
       <div class="dot" style="background:rgba(160,100,255,0.65)"></div>
       <h3>拉普拉斯变换</h3>
       <div class="en">Laplace Transform</div>
-      <p>s 平面极零点图</p>
+      <p>s 平面上的极点与零点分布</p>
     </a>
     <a class="glass-1 nav-card" href="pages/z-transform.html" style="--glow-color:rgba(160,100,255,0.40)">
       <div class="dot" style="background:rgba(160,100,255,0.65)"></div>
@@ -208,7 +208,7 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
       <div class="dot" style="background:rgba(160,100,255,0.65)"></div>
       <h3>采样定理</h3>
       <div class="en">Sampling Theorem</div>
-      <p>采样率 vs 混叠</p>
+      <p>采样率与混叠的关系</p>
     </a>
   </div>
 
@@ -218,25 +218,25 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px}
       <div class="dot" style="background:rgba(255,140,180,0.60)"></div>
       <h3>方向场</h3>
       <div class="en">Direction Field</div>
-      <p>解曲线沿方向场流动</p>
+      <p>解曲线沿方向场切线延伸</p>
     </a>
     <a class="glass-1 nav-card" href="pages/euler-method.html" style="--glow-color:rgba(255,140,180,0.40)">
       <div class="dot" style="background:rgba(255,140,180,0.60)"></div>
       <h3>欧拉法</h3>
       <div class="en">Euler's Method</div>
-      <p>折线逐步逼近真实解</p>
+      <p>折线分步逼近微分方程的解</p>
     </a>
     <a class="glass-1 nav-card" href="pages/phase-plane.html" style="--glow-color:rgba(255,140,180,0.40)">
       <div class="dot" style="background:rgba(255,140,180,0.60)"></div>
       <h3>相平面</h3>
       <div class="en">Phase Plane</div>
-      <p>(x, x') 轨迹族</p>
+      <p>(x, x') 平面上的轨迹族</p>
     </a>
     <a class="glass-1 nav-card" href="pages/spring-mass.html" style="--glow-color:rgba(255,140,180,0.40)">
       <div class="dot" style="background:rgba(255,140,180,0.60)"></div>
       <h3>弹簧振动</h3>
       <div class="en">Spring-Mass</div>
-      <p>阻尼系数影响振动形态</p>
+      <p>阻尼系数决定振动的形态</p>
     </a>
   </div>
 

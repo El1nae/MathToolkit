@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>圆盘法，动手看</title>
+<title>圆盘法</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -46,11 +46,11 @@ function App() {
   const ry = ctx.sy(0) - ctx.sy(r);
   return (
     <div>
-      <PageHeader title="圆盘法，动手看" subtitle="Disk method — stacking circular slices" />
+      <PageHeader title="圆盘法" subtitle="Disk method — stacking circular slices" />
       <Intuition>
-        曲线 <b style={{ color: C.fn }}>f(x)</b> 下的区域绕 x 轴旋转，成为立体。
-        在位置 x 处切一刀，切面是一个<b style={{ color: C.acc }}>实心圆盘</b>，半径 r=f(x)，面积 πr²。
-        把无数薄圆盘叠起来，体积 = π∫f(x)²dx。
+        曲线 <b style={{ color: C.fn }}>f(x)</b> 下方区域绕 x 轴旋转生成旋转体。
+        在位置 x 处作垂直于轴的截面，得到<b style={{ color: C.acc }}>实心圆盘</b>，半径 r=f(x)，面积 πr²。
+        对全部圆盘微元沿轴积分，体积 = π∫f(x)²dx。
       </Intuition>
 
       <Card>
@@ -61,7 +61,7 @@ function App() {
       </Card>
 
       <Card variant="chart">
-        <div className="chart-label">圆盘切片 @ x = {cx.toFixed(2)}，半径 r = {r.toFixed(3)}，面积 πr² = {(Math.PI * r * r).toFixed(3)}</div>
+        <div className="chart-label">圆盘截面 @ x = {cx.toFixed(2)}，半径 r = {r.toFixed(3)}，面积 πr² = {(Math.PI * r * r).toFixed(3)}</div>
         <svg viewBox="0 0 360 220">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
           <GridLines ctx={ctx} />
@@ -76,25 +76,25 @@ function App() {
         </svg>
         <Legend items={[
           { color: C.fn, label: "母线 f(x)" },
-          { color: C.acc, label: "圆盘切片 (半径 r)" },
+          { color: C.acc, label: "圆盘截面 (半径 r)" },
         ]} />
       </Card>
 
       <Card>
-        <SliderControl label="切片位置 x" display={cx.toFixed(2)} color={C.acc}
+        <SliderControl label="截面位置 x" display={cx.toFixed(2)} color={C.acc}
           min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
-          hint="拖动 x，圆盘沿轴滑动，累积旋转体体积" />
+          hint="增大 x，圆盘沿轴推进，累计旋转体体积" />
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
           <StatTile label="圆盘半径 r" value={r.toFixed(3)} color={C.acc} />
-          <StatTile label="体积 π∫f² (到 x)" value={vol.toFixed(3)} color={C.fill} />
+          <StatTile label="体积 π∫f² (至 x)" value={vol.toFixed(3)} color={C.fill} />
         </div>
       </Card>
 
       <Card style={{ marginBottom: 0 }}>
         <Steps title="圆盘法三步" items={[
-          { title: "旋转", en: "Revolve", desc: "曲线下区域绕 x 轴一圈成立体", color: C.fn },
-          { title: "切圆盘", en: "Slice disk", desc: "在 x 处切面是圆盘，面积 πf(x)²", color: C.acc },
-          { title: "叠加", en: "Stack", desc: "体积 = π∫f(x)²dx", color: C.fill },
+          { title: "旋转", en: "Revolve", desc: "曲线下方区域绕 x 轴旋转成旋转体", color: C.fn },
+          { title: "取圆盘", en: "Slice disk", desc: "x 处截面为圆盘，面积 πf(x)²", color: C.acc },
+          { title: "积分", en: "Stack", desc: "体积 = π∫f(x)²dx", color: C.fill },
         ]} />
       </Card>
     </div>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>极坐标面积，动手看</title>
+<title>极坐标面积</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -58,11 +58,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="极坐标面积，动手看" subtitle="Polar area — sweeping sectors with ½∫r²dθ" />
+      <PageHeader title="极坐标面积" subtitle="Polar area — sweeping sectors with ½∫r²dθ" />
       <Intuition>
-        极坐标下，每个角度 θ 对应半径 <b style={{ color: C.fn }}>r(θ)</b>。
-        面积不是切竖条，而是切<b style={{ color: C.fill }}>扇形薄片</b>：每片近似三角形，面积 ½r²dθ。
-        转动 θ，扇形像雷达一样扫出总面积。
+        极坐标下，半径由角度决定，<b style={{ color: C.fn }}>r(θ)</b> 给出各方向的边界。
+        面积按角度剖分为<b style={{ color: C.fill }}>扇形微元</b>：每片近似为三角形，面积为 ½r²dθ。
+        对 θ 积分即得由曲线围成的总面积。
       </Intuition>
 
       <Card>
@@ -73,7 +73,7 @@ function App() {
       </Card>
 
       <Card variant="chart">
-        <div className="chart-label">θ = {cth.toFixed(2)} rad · 扫过面积 ≈ {area.toFixed(4)}</div>
+        <div className="chart-label">θ = {cth.toFixed(2)} rad · 累计面积 ≈ {area.toFixed(4)}</div>
         <svg viewBox="0 0 360 300">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
           <line x1="0" y1={ctx.sy(0)} x2="360" y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
@@ -89,7 +89,7 @@ function App() {
         </svg>
         <Legend items={[
           { color: C.ghost, label: "完整曲线", dashed: true },
-          { color: C.fill, label: "扫过的扇形面积" },
+          { color: C.fill, label: "累计扇形面积" },
           { color: C.acc, label: "当前角度 θ" },
         ]} />
       </Card>
@@ -97,7 +97,7 @@ function App() {
       <Card>
         <SliderControl label="角度 θ" display={cth.toFixed(2)} color={C.acc}
           min={0} max={thMax} step={0.01} value={cth} onChange={setTheta} last
-          hint="转动 θ，扇形薄片一片片累加成面积" />
+          hint="增大 θ，扇形微元逐段累加为面积" />
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
           <StatTile label="r(θ)" value={rf(cth).toFixed(3)} color={C.fn} />
           <StatTile label="面积 ½∫r²dθ" value={area.toFixed(4)} color={C.fill} />
@@ -106,9 +106,9 @@ function App() {
 
       <Card style={{ marginBottom: 0 }}>
         <Steps title="极坐标面积三步" items={[
-          { title: "切扇形", en: "Sectors", desc: "按角度切成薄扇形，不是竖条", color: C.fill },
-          { title: "算薄片", en: "½r²dθ", desc: "每片近似三角形，面积 ½r²dθ", color: C.acc },
-          { title: "积分", en: "Integrate", desc: "面积 = ½∫r²dθ 累加所有扇形", color: C.fn },
+          { title: "扇形剖分", en: "Sectors", desc: "按角度剖分为扇形微元", color: C.fill },
+          { title: "微元面积", en: "½r²dθ", desc: "每片近似三角形，面积 ½r²dθ", color: C.acc },
+          { title: "积分", en: "Integrate", desc: "面积 = ½∫r²dθ，累加全部扇形", color: C.fn },
         ]} />
       </Card>
     </div>

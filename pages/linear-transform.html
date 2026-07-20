@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>线性变换，动手看</title>
+<title>线性变换</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -40,8 +40,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="线性变换，动手看" subtitle="Linear transformation — the grid warps, lines stay straight" backHref="../index.html" />
-      <Intuition>矩阵 A 把整个平面拉成新形状：<b style={{ color: C.fn }}>基向量 î, ĵ</b> 变成矩阵的两列，网格线保持平行且等距。<b style={{ color: C.fill }}>单位方格</b>的新面积就是 <b>行列式 det(A)</b>，负值表示翻转了朝向。</Intuition>
+      <PageHeader title="线性变换" subtitle="Linear transformation — the grid warps, lines stay straight" backHref="../index.html" />
+      <Intuition>矩阵 A 将平面映射为新的结构：<b style={{ color: C.fn }}>基向量 î, ĵ</b> 映射为矩阵的两列，网格线保持平行且等距。<b style={{ color: C.fill }}>单位方格</b>变换后的面积等于 <b>行列式 det(A)</b>，负值表示朝向翻转。</Intuition>
       <Card variant="chart">
         <svg viewBox="0 0 360 340">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
@@ -68,13 +68,13 @@ function App() {
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr" }}>
           <StatTile label="行列式 det(A) = ad − bc" value={det.toFixed(3)} color={C.fill} />
         </div>
-        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>{Math.abs(det) < 0.03 ? "det≈0：平面被压成一条线，变换不可逆。" : det < 0 ? "det<0：朝向被翻转（镜像）。" : "det>0：保持朝向，面积放大 " + Math.abs(det).toFixed(2) + " 倍。"}</div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>{Math.abs(det) < 0.03 ? "det≈0：平面被压缩至一条直线，变换不可逆。" : det < 0 ? "det<0：朝向翻转（镜像）。" : "det>0：朝向保持，面积放大 " + Math.abs(det).toFixed(2) + " 倍。"}</div>
       </Card>
       <Card>
-        <Steps title="三步看懂矩阵" items={[
-          { title: "看列向量", en: "columns = î,ĵ", desc: "矩阵两列就是基向量的落点。", color: C.fn },
-          { title: "线性组合", en: "Av = xî + yĵ", desc: "任意点是基向量的线性组合。", color: C.acc },
-          { title: "读行列式", en: "det = 面积比", desc: "单位方格面积的缩放倍数与朝向。", color: C.fill },
+        <Steps title="三步解读矩阵" items={[
+          { title: "读列向量", en: "columns = î,ĵ", desc: "矩阵两列即基向量变换后的位置。", color: C.fn },
+          { title: "线性组合", en: "Av = xî + yĵ", desc: "任意点是变换后基向量的线性组合。", color: C.acc },
+          { title: "读行列式", en: "det = 面积比", desc: "单位方格面积的缩放倍数及朝向。", color: C.fill },
         ]} />
       </Card>
     </div>

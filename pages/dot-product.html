@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>点积，动手看</title>
+<title>点积</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -38,8 +38,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="点积，动手看" subtitle="Dot product — length times aligned length" backHref="../index.html" />
-      <Intuition>点积 <b>a·b = |a||b|cos θ</b> 衡量两个向量有多"同向"。夹角小 → 正值大；<b style={{ color: C.acc }}>垂直时点积为 0</b>；夹角钝 → 负值。绿色虚线是 a 在 b 上的投影长度。</Intuition>
+      <PageHeader title="点积" subtitle="Dot product — length times aligned length" backHref="../index.html" />
+      <Intuition>点积 <b>a·b = |a||b|cos θ</b> 度量两向量方向的一致程度。夹角越小，值越大；<b style={{ color: C.acc }}>正交时点积为 0</b>；夹角为钝角时取负值。绿色虚线为 a 在 b 上的投影长度。</Intuition>
       <Card variant="chart">
         <svg viewBox="0 0 360 340">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
@@ -67,13 +67,13 @@ function App() {
           <StatTile label="点积 a·b" value={dot.toFixed(2)} color={C.fn} />
           <StatTile label="夹角 θ" value={angDeg.toFixed(1) + "°"} color={C.acc} />
         </div>
-        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>|a|={la.toFixed(2)}，|b|={lb.toFixed(2)}，cos θ={cos.toFixed(3)}。{Math.abs(dot) < 0.05 ? "此刻两向量垂直！" : dot > 0 ? "点积为正，方向偏同向。" : "点积为负，方向偏相反。"}</div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>|a|={la.toFixed(2)}，|b|={lb.toFixed(2)}，cos θ={cos.toFixed(3)}。{Math.abs(dot) < 0.05 ? "两向量正交。" : dot > 0 ? "点积为正，方向偏向一致。" : "点积为负，方向偏向相反。"}</div>
       </Card>
       <Card>
-        <Steps title="点积三种视角" items={[
-          { title: "坐标式", en: "aₓbₓ + a_yb_y", desc: "对应分量相乘再相加。", color: C.fn },
-          { title: "几何式", en: "|a||b|cos θ", desc: "长度乘积再乘夹角余弦。", color: C.fill },
-          { title: "投影式", en: "|a| · comp_a b", desc: "一个向量长度乘另一个的投影。", color: C.acc },
+        <Steps title="点积的三种视角" items={[
+          { title: "坐标式", en: "aₓbₓ + a_yb_y", desc: "对应分量相乘后求和。", color: C.fn },
+          { title: "几何式", en: "|a||b|cos θ", desc: "长度乘积与夹角余弦之积。", color: C.fill },
+          { title: "投影式", en: "|a| · comp_a b", desc: "一个向量长度与另一向量投影之积。", color: C.acc },
         ]} />
       </Card>
     </div>

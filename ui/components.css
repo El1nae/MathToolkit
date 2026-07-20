@@ -23,12 +23,13 @@
 /* -- 页面布局 -- */
 .back-link { font-size: 11px; color: var(--text-3); letter-spacing: 0.05em; }
 .page-title {
-  font-family: var(--font-title); font-size: 26px; font-weight: 700;
-  color: var(--text-1); margin: 12px 0 4px; letter-spacing: -0.02em;
+  font-family: var(--font-title); font-size: 24px; font-weight: 700;
+  color: var(--text-1); margin: 8px 0 3px; letter-spacing: -0.02em;
+  text-shadow: 0 0 18px rgba(255,255,255,0.35), 0 0 40px rgba(120,150,255,0.18);
 }
 .page-subtitle {
   font-family: var(--font-title); font-style: italic; font-size: 13px;
-  color: var(--text-3); margin: 0 0 22px;
+  color: var(--text-3); margin: 0 0 14px;
 }
 .section-label {
   font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
@@ -40,20 +41,20 @@
 }
 
 /* -- 卡片 -- */
-.card { padding: 14px 16px; margin-bottom: 12px; }
-.chart-card { padding: 14px 12px 10px; margin-bottom: 12px; }
+.card { padding: 11px 14px; margin-bottom: 9px; }
+.chart-card { padding: 11px 12px 8px; margin-bottom: 9px; }
 
 /* -- 直觉卡片 -- */
 .intuition-card {
-  border-radius: 10px; padding: 14px 16px; margin-bottom: 18px;
+  border-radius: 10px; padding: 11px 14px; margin-bottom: 12px;
   border-left: 3px solid rgba(100,140,255,0.45);
   background: rgba(100,140,255,0.03);
 }
 .intuition-label {
   font-size: 10px; font-weight: 700; color: rgba(100,140,255,0.55);
-  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px;
 }
-.intuition-text { font-size: 13px; color: var(--text-2); line-height: 1.7; }
+.intuition-text { font-size: 12.5px; color: var(--text-2); line-height: 1.6; }
 .intuition-text b { color: var(--text-1); }
 
 /* -- 按钮 -- */
@@ -116,7 +117,7 @@ input[type="range"]::-moz-range-thumb {
 .stat-tile { border-radius: 10px; padding: 14px 8px; text-align: center; }
 .stat-value {
   font-family: var(--font-mono); font-size: 18px; font-weight: 600;
-  color: var(--text-1);
+  color: var(--text-1); text-shadow: 0 0 14px rgba(255,255,255,0.30);
 }
 .stat-label {
   font-size: 9px; text-transform: uppercase; color: var(--text-4);
@@ -126,7 +127,7 @@ input[type="range"]::-moz-range-thumb {
 /* -- 步骤 -- */
 .step-list { display: flex; flex-direction: column; gap: 0; }
 .step-item {
-  display: flex; gap: 12px; padding: 12px 0;
+  display: flex; gap: 12px; padding: 9px 0;
   border-bottom: 1px solid var(--border-1);
 }
 .step-item:last-child { border-bottom: none; }

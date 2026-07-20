@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SVD 奇异值分解，动手看</title>
+<title>SVD 奇异值分解</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -46,8 +46,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="SVD 奇异值分解，动手看" subtitle="SVD — any matrix is rotate · scale · rotate" backHref="../index.html" />
-      <Intuition>任何矩阵都能拆成三步：<b style={{ color: C.fn }}>旋转 Vᵀ</b> → <b style={{ color: C.fill }}>沿轴缩放 Σ</b> → <b style={{ color: C.acc }}>再旋转 U</b>。单位圆先转，再被拉成椭圆，最后转到位。椭圆的两个半轴长就是<b>奇异值 σ₁, σ₂</b>。</Intuition>
+      <PageHeader title="SVD 奇异值分解" subtitle="SVD — any matrix is rotate · scale · rotate" backHref="../index.html" />
+      <Intuition>任意矩阵可分解为三步：<b style={{ color: C.fn }}>旋转 Vᵀ</b> → <b style={{ color: C.fill }}>沿轴缩放 Σ</b> → <b style={{ color: C.acc }}>旋转 U</b>。单位圆先旋转，再被缩放为椭圆，最后旋转至最终朝向。椭圆两半轴长度即<b>奇异值 σ₁, σ₂</b>。</Intuition>
       <Card>
         <div className="section-label" style={{ marginBottom: 8 }}>矩阵 A（2×2）</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -75,13 +75,13 @@ function App() {
           <StatTile label="σ₁ (最大伸缩)" value={S.s1.toFixed(2)} color={C.fill} />
           <StatTile label="σ₂ (最小伸缩)" value={S.s2.toFixed(2)} color={C.fill} />
         </div>
-        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>条件数 σ₁/σ₂ = <b style={{ color: C.ink }}>{(S.s2 > 1e-6 ? S.s1 / S.s2 : Infinity).toFixed(2)}</b>，越大说明矩阵越"扁"、越接近奇异。用上方按钮逐步观看分解。</div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>条件数 σ₁/σ₂ = <b style={{ color: C.ink }}>{(S.s2 > 1e-6 ? S.s1 / S.s2 : Infinity).toFixed(2)}</b>，其值越大，矩阵越接近奇异。使用上方按钮逐步查看分解过程。</div>
       </Card>
       <Card>
         <Steps title="A = U Σ Vᵀ" items={[
-          { title: "Vᵀ 输入旋转", en: "orthogonal", desc: "把输入的正交方向转到坐标轴上。", color: C.fn },
-          { title: "Σ 沿轴缩放", en: "diagonal", desc: "沿 x,y 轴分别拉伸 σ₁, σ₂ 倍，圆变椭圆。", color: C.fill },
-          { title: "U 输出旋转", en: "orthogonal", desc: "把椭圆转到最终朝向，得到 Av。", color: C.acc },
+          { title: "Vᵀ 输入旋转", en: "orthogonal", desc: "将输入的正交方向对齐至坐标轴。", color: C.fn },
+          { title: "Σ 沿轴缩放", en: "diagonal", desc: "沿 x, y 轴分别缩放 σ₁, σ₂ 倍，圆变为椭圆。", color: C.fill },
+          { title: "U 输出旋转", en: "orthogonal", desc: "将椭圆旋转至最终朝向，得到 Av。", color: C.acc },
         ]} />
       </Card>
     </div>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>奈奎斯特采样，动手看</title>
+<title>奈奎斯特采样</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -48,8 +48,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="奈奎斯特采样，动手看" subtitle="Sampling — you must sample faster than twice the frequency" backHref="../index.html" />
-      <Intuition>要从离散样本还原连续信号，采样率 <b>fs</b> 必须<b style={{ color: C.acc }}>大于信号最高频率的两倍</b>（fs &gt; 2f）。否则高频会"伪装"成低频——这就是<b style={{ color: C.warn }}>混叠</b>，车轮倒转、摩尔纹都是它。</Intuition>
+      <PageHeader title="奈奎斯特采样" subtitle="Sampling — you must sample faster than twice the frequency" backHref="../index.html" />
+      <Intuition>由离散样本无失真还原连续信号，要求采样率 <b>fs</b> <b style={{ color: C.acc }}>大于信号最高频率的两倍</b>（fs &gt; 2f）。否则高频分量将被误判为低频分量，即<b style={{ color: C.warn }}>混叠</b>；车轮反向旋转、摩尔纹均属此现象。</Intuition>
       <Card variant="chart">
         <div className="chart-label">① 连续信号 x(t)</div>
         <svg viewBox="0 0 360 150">
@@ -59,7 +59,7 @@ function App() {
         </svg>
       </Card>
       <Card variant="chart">
-        <div className="chart-label">② 采样点（每隔 1/fs 取一次）</div>
+        <div className="chart-label">② 采样点（间隔 1/fs）</div>
         <svg viewBox="0 0 360 150">
           <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
           <path d={origPath} fill="none" stroke={C.ghost} strokeWidth="1.2" />
@@ -82,18 +82,18 @@ function App() {
       </Card>
       <Card>
         <SliderControl label="信号频率 f" display={f.toFixed(1) + " Hz"} color={C.fn} min={1} max={12} step={0.5} value={f} onChange={setF} />
-        <SliderControl label="采样率 fs" display={fs.toFixed(1) + " Hz"} color={C.fill} min={2} max={30} step={0.5} value={fs} onChange={setFs} last hint={"奈奎斯特门槛 = 2f = " + (2 * f).toFixed(1) + " Hz"} />
+        <SliderControl label="采样率 fs" display={fs.toFixed(1) + " Hz"} color={C.fill} min={2} max={30} step={0.5} value={fs} onChange={setFs} last hint={"奈奎斯特阈值 = 2f = " + (2 * f).toFixed(1) + " Hz"} />
       </Card>
       <Card>
         <div style={{ fontSize: 13, color: C.sub }}>{aliasing
-          ? <span><b style={{ color: C.warn }}>发生混叠！</b> fs &lt; 2f，{f}Hz 被误认成约 {fAlias.toFixed(1)}Hz 的低频，重建失真。</span>
-          : <span><b style={{ color: C.acc }}>采样充分。</b> fs ≥ 2f，样本足以完美还原原信号。</span>}</div>
+          ? <span><b style={{ color: C.warn }}>发生混叠。</b> fs &lt; 2f，{f}Hz 被误判为约 {fAlias.toFixed(1)}Hz 的低频，重建失真。</span>
+          : <span><b style={{ color: C.acc }}>采样充分。</b> fs ≥ 2f，样本可无失真还原原信号。</span>}</div>
       </Card>
       <Card>
         <Steps title="采样定理三步" items={[
           { title: "采样", en: "x[n] = x(n/fs)", desc: "每隔 1/fs 秒记录一个瞬时值。", color: C.fill },
           { title: "判据", en: "fs > 2·f_max", desc: "采样率须高于最高频率的两倍。", color: C.acc },
-          { title: "重建", en: "sinc 插值", desc: "满足判据时样本可无损还原信号。", color: C.fn },
+          { title: "重建", en: "sinc 插值", desc: "满足判据时，样本可无失真还原信号。", color: C.fn },
         ]} />
       </Card>
     </div>

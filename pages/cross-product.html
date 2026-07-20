@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>叉积，动手看</title>
+<title>叉积</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -34,8 +34,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="叉积，动手看" subtitle="Cross product — signed area of the parallelogram" backHref="../index.html" />
-      <Intuition>二维叉积 <b>a × b = aₓb_y − a_ybₓ</b> 是一个标量：它的绝对值等于两向量张成的<b style={{ color: C.fill }}>平行四边形面积</b>。符号告诉你 b 在 a 的<b>左边还是右边</b>（逆时针为正）。</Intuition>
+      <PageHeader title="叉积" subtitle="Cross product — signed area of the parallelogram" backHref="../index.html" />
+      <Intuition>二维叉积 <b>a × b = aₓb_y − a_ybₓ</b> 为标量：其绝对值等于两向量张成的<b style={{ color: C.fill }}>平行四边形面积</b>，符号表示 b 相对 a 的旋向（逆时针为正，顺时针为负）。</Intuition>
       <Card variant="chart">
         <svg viewBox="0 0 360 340">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
@@ -62,13 +62,13 @@ function App() {
           <StatTile label="叉积 a×b (有向)" value={cross.toFixed(2)} color={C.fn} />
           <StatTile label="平行四边形面积" value={area.toFixed(2)} color={C.fill} />
         </div>
-        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>{Math.abs(cross) < 0.05 ? "叉积≈0：两向量共线，面积退化为零。" : cross > 0 ? "叉积为正：b 在 a 的逆时针方向。" : "叉积为负：b 在 a 的顺时针方向。"}</div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>{Math.abs(cross) < 0.05 ? "叉积≈0：两向量共线，面积退化为零。" : cross > 0 ? "叉积为正：b 位于 a 的逆时针方向。" : "叉积为负：b 位于 a 的顺时针方向。"}</div>
       </Card>
       <Card>
-        <Steps title="三步理解叉积" items={[
-          { title: "交叉相乘", en: "aₓb_y − a_ybₓ", desc: "对角相乘再相减，得到有向标量。", color: C.fn },
-          { title: "取面积", en: "|a×b|", desc: "绝对值就是平行四边形面积。", color: C.fill },
-          { title: "读符号", en: "sign", desc: "正=逆时针，负=顺时针，零=共线。", color: C.acc },
+        <Steps title="三步计算叉积" items={[
+          { title: "交叉相乘", en: "aₓb_y − a_ybₓ", desc: "对角分量相乘后相减，得到有向标量。", color: C.fn },
+          { title: "取面积", en: "|a×b|", desc: "绝对值即平行四边形面积。", color: C.fill },
+          { title: "读符号", en: "sign", desc: "正为逆时针，负为顺时针，零为共线。", color: C.acc },
         ]} />
       </Card>
     </div>

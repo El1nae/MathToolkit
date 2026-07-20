@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>傅里叶变换，动手看</title>
+<title>傅里叶变换</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -52,8 +52,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="傅里叶变换，动手看" subtitle="Fourier transform — from time to frequency" backHref="../index.html" />
-      <Intuition>任何信号都能拆成不同频率的正弦波之和。<b style={{ color: C.fn }}>时域</b>看的是波形随时间起伏；<b style={{ color: C.acc }}>频域</b>看的是"每个频率占多少"。变换 X(k)=Σ x(n)e^(−j2πkn/N) 就是问：信号里藏着哪些频率？</Intuition>
+      <PageHeader title="傅里叶变换" subtitle="Fourier transform — from time to frequency" backHref="../index.html" />
+      <Intuition>任意信号均可表示为不同频率正弦分量的叠加。<b style={{ color: C.fn }}>时域</b>描述波形随时间的变化，<b style={{ color: C.acc }}>频域</b>描述各频率分量的幅度。离散傅里叶变换 X(k)=Σ x(n)e^(−j2πkn/N) 给出信号在各频率上的分布。</Intuition>
       <ExampleSwitcher examples={TYPES} active={type} onChange={setType} />
       <Card variant="chart">
         <div className="chart-label">时域 x(t)</div>
@@ -74,13 +74,13 @@ function App() {
         <Legend items={[{ color: C.fn, label: "时域波形" }, { color: C.acc, label: "频率成分" }]} />
       </Card>
       <Card>
-        <SliderControl label="频率参数 f" display={freq.toFixed(0)} color={C.fn} min={1} max={30} step={1} value={freq} onChange={setFreq} last hint="拖动看频谱峰值随之移动" />
+        <SliderControl label="频率参数 f" display={freq.toFixed(0)} color={C.fn} min={1} max={30} step={1} value={freq} onChange={setFreq} last hint="调节 f，观察频谱峰值位置随之移动" />
       </Card>
       <Card>
-        <Steps title="三步理解傅里叶" items={[
-          { title: "假设基波", en: "e^(j2πkt)", desc: "用一族不同频率的复指数作为探针。", color: C.fn },
-          { title: "相关求和", en: "Σ x·探针", desc: "信号与每个频率相乘再求和，看契合度。", color: C.fill },
-          { title: "得到频谱", en: "|X(k)|", desc: "求和的幅度就是该频率的强度。", color: C.acc },
+        <Steps title="傅里叶变换三步" items={[
+          { title: "构造基", en: "e^(j2πkt)", desc: "以一组不同频率的复指数作为基函数。", color: C.fn },
+          { title: "相关求和", en: "Σ x·基", desc: "信号与各频率基函数逐点相乘后求和。", color: C.fill },
+          { title: "得到频谱", en: "|X(k)|", desc: "求和结果的幅度即该频率分量的强度。", color: C.acc },
         ]} />
       </Card>
     </div>

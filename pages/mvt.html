@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>中值定理，动手看</title>
+<title>中值定理</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -59,11 +59,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="中值定理，动手看" subtitle="Mean Value Theorem — a tangent parallel to the secant" />
+      <PageHeader title="中值定理" subtitle="Mean Value Theorem — a tangent parallel to the secant" />
       <Intuition>
-        连接端点 a、b 的 <b style={{ color: C.fill }}>割线</b> 有个平均斜率。
-        中值定理保证：区间内至少存在一点 <b style={{ color: C.acc }}>c</b>，其
-        <b style={{ color: C.fn }}>切线</b>恰好和割线平行——瞬时速度等于平均速度。
+        连接端点 a、b 的 <b style={{ color: C.fill }}>割线</b> 斜率为区间平均变化率。
+        中值定理表明：区间内至少存在一点 <b style={{ color: C.acc }}>c</b>，其
+        <b style={{ color: C.fn }}>切线</b>与割线平行，即瞬时变化率等于平均变化率。
       </Intuition>
 
       <Card>
@@ -107,10 +107,10 @@ function App() {
       </Card>
 
       <Card style={{ marginBottom: 0 }}>
-        <Steps title="中值定理三步" items={[
-          { title: "画割线", en: "Secant", desc: "连接端点，斜率 = 平均变化率", color: C.fill },
-          { title: "找 c", en: "Find c", desc: "用二分法搜索 f′(c) = 平均斜率的点", color: C.acc },
-          { title: "平行", en: "Parallel", desc: "c 处切线与割线平行，两者斜率相等", color: C.fn },
+        <Steps title="中值定理的验证" items={[
+          { title: "作割线", en: "Secant", desc: "连接端点，斜率为平均变化率", color: C.fill },
+          { title: "求 c", en: "Find c", desc: "以二分法求 f′(c) 等于平均斜率的点", color: C.acc },
+          { title: "平行", en: "Parallel", desc: "c 处切线与割线平行，斜率相等", color: C.fn },
         ]} />
       </Card>
     </div>

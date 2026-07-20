@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>方向场，动手看</title>
+<title>方向场</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -62,8 +62,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="方向场，动手看" subtitle="Direction field — arrows every solution must follow" backHref="../index.html" />
-      <Intuition>微分方程 dy/dx = f(x,y) 在每一点都规定了一个<b style={{ color: C.dim }}>斜率</b>。把这些小线段画满平面就是<b>方向场</b>。任何解曲线都必须处处与这些线段相切——<b style={{ color: C.acc }}>点击图上任意点</b>放一条解曲线看看它如何顺流而下。</Intuition>
+      <PageHeader title="方向场" subtitle="Direction field — arrows every solution must follow" backHref="../index.html" />
+      <Intuition>微分方程 dy/dx = f(x,y) 在平面每一点规定了一个<b style={{ color: C.dim }}>斜率</b>。将这些短线段布满平面即构成<b>方向场</b>。任意解曲线在每一点均与该点线段相切。<b style={{ color: C.acc }}>点击图中任意点</b>可从该点生成一条解曲线。</Intuition>
       <Card>
         <div className="section-label" style={{ marginBottom: 8 }}>dy/dx = f(x, y) =</div>
         <input className="formula-input" value={exprStr} spellCheck={false} autoComplete="off" onChange={(e) => setExprStr(e.target.value)} />
@@ -86,10 +86,10 @@ function App() {
         <button className="preset-btn" onClick={() => setSeeds([])} style={{ width: "100%", padding: "10px" }}>清空解曲线</button>
       </Card>
       <Card>
-        <Steps title="三步理解方向场" items={[
-          { title: "算斜率", en: "f(x,y)", desc: "每一点的 dy/dx 就是该点线段的倾角。", color: C.dim },
-          { title: "铺满平面", en: "slope field", desc: "画出网格上所有小线段，得到流场。", color: C.fill },
-          { title: "顺流积分", en: "Euler", desc: "从初始点出发沿切线走，描出解曲线。", color: C.acc },
+        <Steps title="方向场三步" items={[
+          { title: "算斜率", en: "f(x,y)", desc: "每一点的 dy/dx 即该点线段的倾角。", color: C.dim },
+          { title: "布满平面", en: "slope field", desc: "在网格各点绘制短线段，构成斜率场。", color: C.fill },
+          { title: "沿切线积分", en: "Euler", desc: "从初始点出发沿切线方向推进，得到解曲线。", color: C.acc },
         ]} />
       </Card>
     </div>

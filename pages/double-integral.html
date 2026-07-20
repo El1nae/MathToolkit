@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>二重积分，动手看</title>
+<title>二重积分</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -71,11 +71,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="二重积分，动手看" subtitle="Double integral — summing volume over a region" />
+      <PageHeader title="二重积分" subtitle="Double integral — summing volume over a region" />
       <Intuition>
-        二重积分把区域切成一格格小方块，每格贡献体积 <b style={{ color: C.fill }}>z·dxdy</b>。
-        热力图用颜色表示高度 <b style={{ color: C.fn }}>z=f(x,y)</b>：偏冷是低值，偏暖是高值。
-        沿 x 或 y 方向切一条<b style={{ color: C.acc }}>薄片</b>，就退化成一维积分。
+        二重积分将区域剖分为网格单元，每个单元贡献体积 <b style={{ color: C.fill }}>z·dxdy</b>。
+        热力图以颜色编码高度 <b style={{ color: C.fn }}>z=f(x,y)</b>：冷色对应低值，暖色对应高值。
+        固定 x 或 y 取一条<b style={{ color: C.acc }}>截线</b>，即退化为一维积分。
       </Intuition>
 
       <Card>
@@ -88,7 +88,7 @@ function App() {
       </Card>
 
       <Card variant="chart">
-        <div className="chart-label">热力图 z = f(x,y) · 沿 {sliceDir} 方向切片</div>
+        <div className="chart-label">热力图 z = f(x,y) · 沿 {sliceDir} 方向截取</div>
         <svg viewBox="0 0 320 320">
           {cells.arr.map((c, k) => (
             <rect key={k} x={gx(c.i)} y={gy(c.j + 1)} width={cw + 0.5} height={ch + 0.5} fill={color(c.z)} opacity="0.9" />
@@ -101,16 +101,16 @@ function App() {
         <Legend items={[
           { color: "rgb(60,200,180)", label: "低 z 值" },
           { color: "rgb(255,80,200)", label: "高 z 值" },
-          { color: C.ink, label: "切片位置" },
+          { color: C.ink, label: "截线位置" },
         ]} />
       </Card>
 
       <Card>
-        <ExampleSwitcher examples={[{ name: "沿 x 切" }, { name: "沿 y 切" }]}
+        <ExampleSwitcher examples={[{ name: "沿 x 截取" }, { name: "沿 y 截取" }]}
           active={sliceDir === "x" ? 0 : 1} onChange={(i) => setSliceDir(i === 0 ? "x" : "y")} />
-        <SliderControl label={`切片位置 (${sliceDir})`} display={slice.toFixed(2)} color={C.acc}
+        <SliderControl label={`截线位置 (${sliceDir})`} display={slice.toFixed(2)} color={C.acc}
           min={-1} max={1} step={0.02} value={slice} onChange={setSlice} last
-          hint="切一条薄片，二重积分就退化为一重积分" />
+          hint="固定一维取截线，二重积分退化为一重积分" />
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr", marginTop: 12 }}>
           <StatTile label="∬f dA 体积 (黎曼近似)" value={vol.toFixed(3)} color={C.fill} />
         </div>
@@ -118,9 +118,9 @@ function App() {
 
       <Card style={{ marginBottom: 0 }}>
         <Steps title="二重积分三步" items={[
-          { title: "铺网格", en: "Grid", desc: "把区域分成许多小方块 dxdy", color: C.fn },
-          { title: "算高度", en: "Height z", desc: "每格体积 = z·dxdy，颜色表示 z", color: C.fill },
-          { title: "累加", en: "Sum", desc: "所有小柱体积相加 = ∬f dA", color: C.acc },
+          { title: "剖分网格", en: "Grid", desc: "将区域剖分为网格单元 dxdy", color: C.fn },
+          { title: "计高度", en: "Height z", desc: "每单元体积 = z·dxdy，颜色编码 z", color: C.fill },
+          { title: "求和", en: "Sum", desc: "全部柱体体积求和 = ∬f dA", color: C.acc },
         ]} />
       </Card>
     </div>

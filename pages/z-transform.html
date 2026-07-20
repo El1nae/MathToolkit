@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>z 变换，动手看</title>
+<title>z 变换</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -48,8 +48,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="z 变换，动手看" subtitle="z-transform — poles and zeros shape a digital filter" backHref="../index.html" />
-      <Intuition>数字滤波器由 z 平面上的<b style={{ color: C.warn }}>极点 ×</b> 和 <b style={{ color: C.fn }}>零点 ○</b> 决定。频率响应就是沿<b style={{ color: C.acc }}>单位圆</b>走一圈时到各零/极点的距离比：靠近极点 → 增益放大（峰），靠近零点 → 增益归零（谷）。极点必须在单位圆内才稳定。</Intuition>
+      <PageHeader title="z 变换" subtitle="z-transform — poles and zeros shape a digital filter" backHref="../index.html" />
+      <Intuition>数字滤波器的频率特性由 z 平面上的<b style={{ color: C.warn }}>极点 ×</b> 与 <b style={{ color: C.fn }}>零点 ○</b> 决定。频率响应等于沿<b style={{ color: C.acc }}>单位圆</b>取值时，各零点距离之积与各极点距离之积的比值：靠近极点则增益升高，靠近零点则增益降低。极点位于单位圆内是系统稳定的充要条件。</Intuition>
       <Card variant="chart">
         <div className="chart-label">z 平面</div>
         <svg viewBox="0 0 360 300">
@@ -83,13 +83,13 @@ function App() {
         <SliderControl label="零点角度 (×π)" display={za.toFixed(2)} color={C.fn} min={0} max={Math.PI} step={0.02} value={za} onChange={setZa} last />
       </Card>
       <Card>
-        <div style={{ fontSize: 13, color: C.sub }}>极点半径 {pr < 1 ? <b style={{ color: C.acc }}>&lt; 1，滤波器稳定</b> : <b style={{ color: C.warn }}>≥ 1，不稳定</b>}。把极点角度对准某频率会在那里形成增益峰，零点则挖出陷波。</div>
+        <div style={{ fontSize: 13, color: C.sub }}>极点半径 {pr < 1 ? <b style={{ color: C.acc }}>&lt; 1，滤波器稳定</b> : <b style={{ color: C.warn }}>≥ 1，不稳定</b>}。将极点角度对准某频率会在该频率形成增益峰，零点则形成陷波。</div>
       </Card>
       <Card>
-        <Steps title="三步设计滤波器" items={[
-          { title: "放极点", en: "poles → 峰", desc: "极点靠近单位圆制造增益峰（谐振）。", color: C.warn },
-          { title: "放零点", en: "zeros → 谷", desc: "零点落在单位圆上把该频率完全抑制。", color: C.fn },
-          { title: "读响应", en: "|H(e^jω)|", desc: "沿单位圆的距离比就是频率响应曲线。", color: C.fill },
+        <Steps title="滤波器设计三步" items={[
+          { title: "放置极点", en: "poles → 峰", desc: "极点靠近单位圆，在对应频率形成增益峰（谐振）。", color: C.warn },
+          { title: "放置零点", en: "zeros → 谷", desc: "零点位于单位圆上时，完全抑制对应频率。", color: C.fn },
+          { title: "读取响应", en: "|H(e^jω)|", desc: "沿单位圆的距离比即频率响应曲线。", color: C.fill },
         ]} />
       </Card>
     </div>

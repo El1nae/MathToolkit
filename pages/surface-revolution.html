@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>旋转曲面，动手看</title>
+<title>旋转曲面</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -52,11 +52,11 @@ function App() {
   const ringRy = (ctx.sy(0) - ctx.sy(r)); // pixel radius vertical
   return (
     <div>
-      <PageHeader title="旋转曲面，动手看" subtitle="Surface of revolution — spinning a curve around an axis" />
+      <PageHeader title="旋转曲面" subtitle="Surface of revolution — spinning a curve around an axis" />
       <Intuition>
-        把曲线 <b style={{ color: C.fn }}>f(x)</b> 绕 x 轴旋转一圈，扫出一个曲面。
-        在位置 x 处切一刀，得到半径 <b style={{ color: C.acc }}>r = f(x)</b> 的圆环。
-        把所有圆环的斜边长累加，就是曲面面积 2π∫f√(1+f′²)dx。
+        曲线 <b style={{ color: C.fn }}>f(x)</b> 绕 x 轴旋转生成一张曲面。
+        在位置 x 处的截面为半径 <b style={{ color: C.acc }}>r = f(x)</b> 的圆环，其侧面元由弧长微元 √(1+f′²)dx 确定。
+        沿 x 积分得曲面面积 2π∫f√(1+f′²)dx。
       </Intuition>
 
       <Card>
@@ -88,20 +88,20 @@ function App() {
       </Card>
 
       <Card>
-        <SliderControl label="切面位置 x" display={cx.toFixed(2)} color={C.acc}
+        <SliderControl label="截面位置 x" display={cx.toFixed(2)} color={C.acc}
           min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
-          hint="拖动 x，圆环沿轴滑动，累积曲面面积" />
+          hint="增大 x，圆环沿轴推进，累计曲面面积" />
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
           <StatTile label="当前圆环半径 r" value={r.toFixed(3)} color={C.acc} />
-          <StatTile label="曲面面积 (到 x)" value={surf.toFixed(3)} color={C.fill} />
+          <StatTile label="曲面面积 (至 x)" value={surf.toFixed(3)} color={C.fill} />
         </div>
       </Card>
 
       <Card style={{ marginBottom: 0 }}>
         <Steps title="旋转曲面三步" items={[
-          { title: "旋转母线", en: "Revolve", desc: "曲线绕 x 轴一圈，扫出立体曲面", color: C.fn },
-          { title: "切圆环", en: "Slice ring", desc: "在 x 处半径 r=f(x)，斜边 √(1+f′²)dx", color: C.acc },
-          { title: "累加", en: "Sum", desc: "面积 = 2π∫f√(1+f′²)dx", color: C.fill },
+          { title: "旋转母线", en: "Revolve", desc: "曲线绕 x 轴旋转生成曲面", color: C.fn },
+          { title: "取圆环", en: "Slice ring", desc: "x 处半径 r=f(x)，弧长微元 √(1+f′²)dx", color: C.acc },
+          { title: "积分", en: "Sum", desc: "面积 = 2π∫f√(1+f′²)dx", color: C.fill },
         ]} />
       </Card>
     </div>

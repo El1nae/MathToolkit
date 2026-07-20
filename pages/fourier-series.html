@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>傅里叶级数，动手看</title>
+<title>傅里叶级数</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -53,11 +53,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="傅里叶级数，动手看" subtitle="Fourier series — building waves from sine harmonics" />
+      <PageHeader title="傅里叶级数" subtitle="Fourier series — building waves from sine harmonics" />
       <Intuition>
-        任何周期信号都能写成一堆<b style={{ color: C.fn }}>正弦波</b>的叠加。
-        谐波项数 n 越多，<b style={{ color: C.fn }}>部分和</b> 越贴近
-        <b style={{ color: C.dim }}>目标波形</b>——转角处的抖动叫吉布斯现象。
+        任意周期信号均可分解为一组<b style={{ color: C.fn }}>正弦波</b>的叠加。
+        谐波项数 n 越大，<b style={{ color: C.fn }}>部分和</b>与
+        <b style={{ color: C.dim }}>目标波形</b>的偏差越小；不连续点附近残留的过冲称为吉布斯现象。
       </Intuition>
 
       <Card>
@@ -83,14 +83,14 @@ function App() {
       <Card>
         <SliderControl label="谐波项数 n" display={n} min={1} max={20} step={1} value={n}
           color={C.fn} onChange={(v) => setN(Math.round(v))} last
-          hint="拖动 n，看正弦波越叠越像目标波形" />
+          hint="增大 n，观察部分和向目标波形收敛" />
       </Card>
 
       <Card style={{ marginBottom: 0 }}>
-        <Steps title="三步看傅里叶级数" items={[
-          { title: "选波形", en: "Pick a wave", desc: "方波、锯齿波、三角波都是周期信号", color: C.acc },
-          { title: "加谐波", en: "Add harmonics", desc: "每个谐波是特定频率、幅度的正弦波", color: C.fn },
-          { title: "看逼近", en: "Converge", desc: "n 越大越贴合，转角处仍有吉布斯抖动", color: C.fill },
+        <Steps title="傅里叶级数的构成" items={[
+          { title: "选取波形", en: "Pick a wave", desc: "方波、锯齿波、三角波均为周期信号", color: C.acc },
+          { title: "叠加谐波", en: "Add harmonics", desc: "每一谐波为特定频率与幅度的正弦波", color: C.fn },
+          { title: "观察逼近", en: "Converge", desc: "n 越大逼近越精确，不连续点仍存在吉布斯过冲", color: C.fill },
         ]} />
       </Card>
     </div>

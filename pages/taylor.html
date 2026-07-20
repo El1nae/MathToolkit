@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>泰勒级数，动手看</title>
+<title>泰勒级数</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -70,11 +70,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="泰勒级数，动手看" subtitle="Taylor series — approximating a curve with polynomials" />
+      <PageHeader title="泰勒级数" subtitle="Taylor series — approximating a curve with polynomials" />
       <Intuition>
-        在展开中心 <b style={{ color: C.acc }}>x₀</b> 处，用抛物线、三次曲线……逐层
-        <b style={{ color: C.fill }}>贴合</b>原函数 <b style={{ color: C.fn }}>f(x)</b>。
-        阶数 n 越高，多项式修正的弯曲越多，逼近范围越广。
+        在展开中心 <b style={{ color: C.acc }}>x₀</b> 处，以多项式逐阶
+        <b style={{ color: C.fill }}>逼近</b>原函数 <b style={{ color: C.fn }}>f(x)</b>。
+        阶数 n 越高，多项式匹配的高阶导数越多，有效逼近区间越宽。
       </Intuition>
 
       <Card>
@@ -103,7 +103,7 @@ function App() {
         <Legend items={[
           { color: C.fn, label: "原函数 f(x)" },
           { color: C.fill, label: `泰勒多项式 T${n}` },
-          { color: C.acc, label: "误差区 / 中心 x₀" },
+          { color: C.acc, label: "误差区 / 展开中心 x₀" },
         ]} />
       </Card>
 
@@ -115,18 +115,18 @@ function App() {
       </Card>
 
       <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>当前多项式（前几项）</div>
+        <div className="section-label" style={{ marginBottom: 8 }}>当前多项式（前若干项）</div>
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 12.5, color: C.fill, wordBreak: "break-word" }}>{formula}</div>
         <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>
-          在 x = {testX.toFixed(2)} 处，误差 |f − T{n}| = <b style={{ color: C.ink }}>{err < 1000 ? err.toFixed(4) : err.toExponential(2)}</b>，增大 n 看它如何变小。
+          在 x = {testX.toFixed(2)} 处，误差 |f − T{n}| = <b style={{ color: C.ink }}>{err < 1000 ? err.toFixed(4) : err.toExponential(2)}</b>；增大 n，误差随之减小。
         </div>
       </Card>
 
       <Card style={{ marginBottom: 0 }}>
-        <Steps title="三步看泰勒展开" items={[
-          { title: "定中心", en: "Center", desc: "选展开点 x₀，多项式在此与 f 完全吻合", color: C.acc },
-          { title: "加项", en: "Add terms", desc: "每加一阶导数项，就多修正一层弯曲", color: C.fill },
-          { title: "看收敛", en: "Converge", desc: "n 越大，逼近区间越宽，误差越小", color: C.fn },
+        <Steps title="泰勒展开的构造" items={[
+          { title: "定中心", en: "Center", desc: "选展开点 x₀，多项式在此与 f 的函数值及各阶导数相等", color: C.acc },
+          { title: "增项", en: "Add terms", desc: "每增加一阶，即匹配 f 的更高一阶导数", color: C.fill },
+          { title: "收敛", en: "Converge", desc: "n 越大，有效逼近区间越宽，误差越小", color: C.fn },
         ]} />
       </Card>
     </div>

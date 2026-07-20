@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>换元积分，动手看</title>
+<title>换元积分</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -67,11 +67,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="换元积分，动手看" subtitle="u-substitution — same area, new coordinate" />
+      <PageHeader title="换元积分" subtitle="u-substitution — same area, new coordinate" />
       <Intuition>
-        换元 <b style={{ color: C.acc }}>u = u(x)</b> 就是给横轴换一把新尺子。
-        虽然曲线形状变了，但两个坐标系里<b style={{ color: C.fill }}>阴影面积完全相等</b>——
-        因为 du = u′(x)dx 恰好补偿了横轴的拉伸。
+        换元 <b style={{ color: C.acc }}>u = u(x)</b> 即对横轴施加坐标变换。
+        曲线形状随之改变，但两坐标系下的<b style={{ color: C.fill }}>积分面积相等</b>：
+        因子 du = u′(x)dx 恰好补偿横轴的缩放。
       </Intuition>
 
       <Card>
@@ -109,10 +109,10 @@ function App() {
       </Card>
 
       <Card style={{ marginBottom: 0 }}>
-        <Steps title="换元积分三步" items={[
-          { title: "设 u", en: "Let u=u(x)", desc: "挑一个内层表达式作为新变量", color: C.acc },
-          { title: "换微元", en: "du=u′dx", desc: "把 dx 换成 du/u′，横轴被重新缩放", color: C.fill },
-          { title: "面积不变", en: "Same area", desc: "两个坐标系下积分值完全相等", color: C.fn },
+        <Steps title="换元积分的构造" items={[
+          { title: "设 u", en: "Let u=u(x)", desc: "选取内层表达式作为新变量", color: C.acc },
+          { title: "换微元", en: "du=u′dx", desc: "将 dx 替换为 du/u′，横轴随之缩放", color: C.fill },
+          { title: "面积不变", en: "Same area", desc: "两坐标系下积分值相等", color: C.fn },
         ]} />
       </Card>
     </div>

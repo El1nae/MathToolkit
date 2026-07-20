@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>参数曲线，动手看</title>
+<title>参数曲线</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -59,11 +59,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="参数曲线，动手看" subtitle="Parametric curves — a point moving over time t" />
+      <PageHeader title="参数曲线" subtitle="Parametric curves — a point moving over time t" />
       <Intuition>
-        不再是 y=f(x)，而是让 <b style={{ color: C.fn }}>x(t)</b> 与 <b style={{ color: C.acc }}>y(t)</b>
-        随参数 t 各自变化。想象一个点在平面上<b>运动</b>，t 是时间，
-        它走过的<b style={{ color: C.fill }}>轨迹</b>就是参数曲线。拖动 t 看它逐段画出。
+        曲线由 <b style={{ color: C.fn }}>x(t)</b> 与 <b style={{ color: C.acc }}>y(t)</b>
+        两个分量函数共同确定，坐标随参数 t 各自演化。参数 t 遍历定义域时，
+        对应点在平面上扫出的<b style={{ color: C.fill }}>轨迹</b>即为参数曲线。增大 t，观察曲线逐段生成。
       </Intuition>
 
       <Card>
@@ -89,15 +89,15 @@ function App() {
         </svg>
         <Legend items={[
           { color: C.ghost, label: "完整轨迹", dashed: true },
-          { color: C.fill, label: "已描绘 (到 t)" },
-          { color: C.acc, label: "当前动点" },
+          { color: C.fill, label: "已生成 (至 t)" },
+          { color: C.acc, label: "当前点" },
         ]} />
       </Card>
 
       <Card>
         <SliderControl label="参数 t" display={ct.toFixed(2)} color={C.acc}
           min={0} max={tMax} step={0.01} value={ct} onChange={setT} last
-          hint="拖动 t，看动点沿轨迹一路画过来" />
+          hint="增大 t，观察当前点沿轨迹推进" />
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
           <StatTile label="x(t)" value={px.toFixed(3)} color={C.fn} />
           <StatTile label="y(t)" value={py.toFixed(3)} color={C.acc} />
@@ -106,9 +106,9 @@ function App() {
 
       <Card style={{ marginBottom: 0 }}>
         <Steps title="参数曲线三步" items={[
-          { title: "两个函数", en: "x(t), y(t)", desc: "横纵坐标各由 t 独立控制", color: C.fn },
-          { title: "让 t 走", en: "Move t", desc: "t 增大，动点在平面上移动", color: C.acc },
-          { title: "看轨迹", en: "Trace", desc: "动点走过的路径就是曲线", color: C.fill },
+          { title: "两个函数", en: "x(t), y(t)", desc: "横纵坐标由 t 分别确定", color: C.fn },
+          { title: "推进 t", en: "Move t", desc: "t 增大，对应点在平面上移动", color: C.acc },
+          { title: "取轨迹", en: "Trace", desc: "点经过的路径即为曲线", color: C.fill },
         ]} />
       </Card>
     </div>

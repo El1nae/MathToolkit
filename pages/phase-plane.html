@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>相平面，动手看</title>
+<title>相平面</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -52,12 +52,12 @@ function App() {
   const trajs = seeds.map(s => trajFrom(s[0], s[1]));
   const toPath = (pts) => pts.map((p, i) => (i === 0 ? "M" : "L") + ctx.sx(p[0]).toFixed(1) + " " + ctx.sy(p[1]).toFixed(1)).join(" ");
   const grid = []; for (let g = -3; g <= 3; g++) grid.push(g);
-  const kind = w < 0 ? "鞍点（发散）" : z === 0 ? "中心（等幅环绕）" : z > 0 && z < 1 ? "螺旋汇聚" : z >= 1 ? "过阻尼结点" : "螺旋发散";
+  const kind = w < 0 ? "鞍点（发散）" : z === 0 ? "中心（等幅环绕）" : z > 0 && z < 1 ? "螺旋收敛" : z >= 1 ? "过阻尼结点" : "螺旋发散";
 
   return (
     <div>
-      <PageHeader title="相平面，动手看" subtitle="Phase plane — trajectories of position vs velocity" backHref="../index.html" />
-      <Intuition>把二阶方程看成 <b>(x, x′)</b> 平面上的运动：每个初始状态画出一条<b style={{ color: C.acc }}>轨迹</b>。所有轨迹的形状揭示系统类型——无阻尼是闭合<b>圆/中心</b>，有阻尼是<b>螺旋</b>汇向原点，负刚度是<b style={{ color: C.warn }}>鞍点</b>发散。</Intuition>
+      <PageHeader title="相平面" subtitle="Phase plane — trajectories of position vs velocity" backHref="../index.html" />
+      <Intuition>将二阶方程视为 <b>(x, x′)</b> 平面上的运动，每个初始状态对应一条<b style={{ color: C.acc }}>轨迹</b>。轨迹的整体形状决定系统类型：无阻尼为闭合曲线（<b>中心</b>），有阻尼为收敛于原点的<b>螺旋</b>，负刚度为发散的<b style={{ color: C.warn }}>鞍点</b>。</Intuition>
       <ExampleSwitcher examples={PRESETS} onChange={(i) => { setZ(PRESETS[i].z); setW(PRESETS[i].w); }} />
       <Card variant="chart">
         <div className="chart-label">相平面 (x, x′)</div>
@@ -77,16 +77,16 @@ function App() {
       </Card>
       <Card>
         <SliderControl label="阻尼比 ζ" display={z.toFixed(2)} color={C.fn} min={-0.3} max={2} step={0.05} value={z} onChange={setZ} />
-        <SliderControl label="频率参数 ω" display={w.toFixed(2)} color={C.fill} min={-1.5} max={2} step={0.05} value={w} onChange={setW} last hint="ω 取负数模拟负刚度 → 鞍点" />
+        <SliderControl label="频率参数 ω" display={w.toFixed(2)} color={C.fill} min={-1.5} max={2} step={0.05} value={w} onChange={setW} last hint="ω 取负值对应负刚度，系统呈鞍点" />
       </Card>
       <Card>
-        <div style={{ fontSize: 13, color: C.sub }}>当前类型：<b style={{ color: w < 0 ? C.warn : C.acc }}>{kind}</b>。平衡点的稳定性完全由 ζ 与 ω 决定，无需解出显式公式。</div>
+        <div style={{ fontSize: 13, color: C.sub }}>当前类型：<b style={{ color: w < 0 ? C.warn : C.acc }}>{kind}</b>。平衡点的稳定性完全由 ζ 与 ω 决定，无需求出显式解。</div>
       </Card>
       <Card>
-        <Steps title="三步读相图" items={[
-          { title: "降阶", en: "x'=v, v'=…", desc: "把二阶方程写成一阶方程组。", color: C.fn },
-          { title: "画轨迹", en: "trajectory", desc: "从多个初始状态积分出流线。", color: C.acc },
-          { title: "辨类型", en: "center/spiral/saddle", desc: "由流线形状判断平衡点稳定性。", color: C.warn },
+        <Steps title="相图分析三步" items={[
+          { title: "降阶", en: "x'=v, v'=…", desc: "将二阶方程改写为一阶方程组。", color: C.fn },
+          { title: "画轨迹", en: "trajectory", desc: "从多个初始状态积分得到轨迹。", color: C.acc },
+          { title: "辨类型", en: "center/spiral/saddle", desc: "由轨迹形状判定平衡点的稳定性。", color: C.warn },
         ]} />
       </Card>
     </div>

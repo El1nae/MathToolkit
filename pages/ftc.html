@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>微积分基本定理，动手看</title>
+<title>微积分基本定理</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -53,11 +53,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="微积分基本定理，动手看" subtitle="Fundamental Theorem — differentiation undoes integration" />
+      <PageHeader title="微积分基本定理" subtitle="Fundamental Theorem — differentiation undoes integration" />
       <Intuition>
-        面积函数 <b style={{ color: C.acc }}>F(x)=∫f</b> 记录曲线下累积的面积。
-        神奇之处：F 在 x 处的<b>增长速度</b>（斜率）恰好等于 <b style={{ color: C.fn }}>f(x)</b> 本身。
-        拖动 x，上图面积和下图累积曲线同步变化。
+        面积函数 <b style={{ color: C.acc }}>F(x)=∫f</b> 表示曲线下从 a 到 x 累积的面积。
+        核心结论：F 在 x 处的<b>变化率</b>（斜率）恰等于 <b style={{ color: C.fn }}>f(x)</b>。
+        改变 x，上图面积与下图累积曲线同步变化。
       </Intuition>
 
       <Card>
@@ -84,7 +84,7 @@ function App() {
       <Card>
         <SliderControl label="位置 x" display={cx.toFixed(2)} color={C.acc}
           min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
-          hint="上图面积 = 下图 F(x) 的高度；F 的斜率 = f(x)" />
+          hint="上图面积等于下图 F(x) 的高度；F 的斜率等于 f(x)" />
       </Card>
 
       <Card variant="chart">
@@ -115,10 +115,10 @@ function App() {
       </Card>
 
       <Card style={{ marginBottom: 0 }}>
-        <Steps title="三步看基本定理" items={[
-          { title: "累积面积", en: "Accumulate", desc: "F(x) 是从 a 到 x 曲线下的面积", color: C.acc },
-          { title: "看斜率", en: "Slope", desc: "F 在 x 处的切线斜率就是 f(x)", color: C.fn },
-          { title: "互逆", en: "Inverse", desc: "求导与积分是一对互逆运算", color: C.fill },
+        <Steps title="基本定理的构造" items={[
+          { title: "累积面积", en: "Accumulate", desc: "F(x) 为从 a 到 x 曲线下的面积", color: C.acc },
+          { title: "求斜率", en: "Slope", desc: "F 在 x 处的切线斜率等于 f(x)", color: C.fn },
+          { title: "互逆", en: "Inverse", desc: "微分与积分互为逆运算", color: C.fill },
         ]} />
       </Card>
     </div>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>柱壳法，动手看</title>
+<title>柱壳法</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -50,11 +50,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="柱壳法，动手看" subtitle="Shell method — nested cylindrical shells" />
+      <PageHeader title="柱壳法" subtitle="Shell method — nested cylindrical shells" />
       <Intuition>
-        区域绕 y 轴旋转时，把它切成一片片<b style={{ color: C.acc }}>竖条</b>。
-        每条旋转后变成一个薄<b style={{ color: C.fill }}>圆柱壳</b>：半径 x、高 f(x)、厚 dx。
-        把壳展开是个长方片，面积 2πx·f(x)，累加得体积 2π∫x·f(x)dx。
+        区域绕 y 轴旋转时，将其剖分为若干<b style={{ color: C.acc }}>竖条</b>。
+        每条旋转后生成一层薄<b style={{ color: C.fill }}>圆柱壳</b>：半径 x、高 f(x)、厚 dx。
+        壳展开为矩形，面积 2πx·f(x)，沿 x 积分得体积 2π∫x·f(x)dx。
       </Intuition>
 
       <Card>
@@ -93,18 +93,18 @@ function App() {
       <Card>
         <SliderControl label="壳半径 x" display={cx.toFixed(2)} color={C.fill}
           min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
-          hint="拖动 x，圆柱壳由内向外一层层累加" />
+          hint="增大 x，圆柱壳由内向外逐层累计" />
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
           <StatTile label="壳面积 2πx·f(x)" value={(2 * Math.PI * cx * height).toFixed(3)} color={C.fill} />
-          <StatTile label="体积 (到 x)" value={vol.toFixed(3)} color={C.acc} />
+          <StatTile label="体积 (至 x)" value={vol.toFixed(3)} color={C.acc} />
         </div>
       </Card>
 
       <Card style={{ marginBottom: 0 }}>
         <Steps title="柱壳法三步" items={[
-          { title: "切竖条", en: "Vertical strip", desc: "把区域切成半径 x、高 f(x) 的薄条", color: C.fn },
-          { title: "卷成壳", en: "Roll shell", desc: "绕 y 轴旋转成薄圆柱壳，展开面积 2πx·f", color: C.fill },
-          { title: "累加", en: "Sum", desc: "体积 = 2π∫x·f(x)dx", color: C.acc },
+          { title: "取竖条", en: "Vertical strip", desc: "将区域剖分为半径 x、高 f(x) 的薄条", color: C.fn },
+          { title: "成柱壳", en: "Roll shell", desc: "绕 y 轴旋转成薄圆柱壳，展开面积 2πx·f", color: C.fill },
+          { title: "积分", en: "Sum", desc: "体积 = 2π∫x·f(x)dx", color: C.acc },
         ]} />
       </Card>
     </div>

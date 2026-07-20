@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>弹簧振子，动手看</title>
+<title>弹簧振子</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -43,7 +43,7 @@ function App() {
   let x;
   let regime;
   if (disc > 1e-6) { const wd = Math.sqrt(disc); x = (tt) => Math.exp(-gamma * tt) * Math.cos(wd * tt); regime = "欠阻尼（振荡衰减）"; }
-  else if (disc < -1e-6) { const r = Math.sqrt(-disc); x = (tt) => Math.exp(-gamma * tt) * (Math.cosh(r * tt) + (gamma / r) * Math.sinh(r * tt)) / 1; regime = "过阻尼（不振荡）"; }
+  else if (disc < -1e-6) { const r = Math.sqrt(-disc); x = (tt) => Math.exp(-gamma * tt) * (Math.cosh(r * tt) + (gamma / r) * Math.sinh(r * tt)) / 1; regime = "过阻尼（无振荡）"; }
   else { x = (tt) => Math.exp(-gamma * tt) * (1 + gamma * tt); regime = "临界阻尼"; }
 
   const xNow = x(t);
@@ -60,8 +60,8 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="弹簧振子，动手看" subtitle="Spring-mass — how damping shapes the motion" backHref="../index.html" />
-      <Intuition>质量在弹簧上的运动由 <b>m x″ + b x′ + k x = 0</b> 决定。<b style={{ color: C.acc }}>阻尼 b</b> 决定摆动方式：小阻尼来回<b>振荡</b>着停下（欠阻尼），大阻尼<b>不振荡</b>直接归位（过阻尼），中间那个临界值最快静止。解是 e^(−bt/2m)·cos(ωt)。</Intuition>
+      <PageHeader title="弹簧振子" subtitle="Spring-mass — how damping shapes the motion" backHref="../index.html" />
+      <Intuition>弹簧上质量的运动由 <b>m x″ + b x′ + k x = 0</b> 描述。<b style={{ color: C.acc }}>阻尼 b</b> 决定运动形态：小阻尼时振荡衰减至静止（欠阻尼），大阻尼时不振荡而单调回到平衡（过阻尼），中间的临界值对应最快回到平衡。解为 e^(−bt/2m)·cos(ωt)。</Intuition>
       <Card variant="chart">
         <div className="chart-label">物理模型（实时动画）</div>
         <svg viewBox="0 0 360 140">
@@ -94,13 +94,13 @@ function App() {
           <StatTile label="固有频率 ω₀=√(k/m)" value={w0.toFixed(2)} color={C.fn} />
           <StatTile label="临界阻尼 b_c=2√(km)" value={(2 * Math.sqrt(k * m)).toFixed(2)} color={C.acc} />
         </div>
-        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>当前状态：<b style={{ color: regime[0] === "欠" ? C.fn : regime[0] === "过" ? C.warn : C.acc }}>{regime}</b>。b 与 2√(km) 的大小关系决定了三种情形。</div>
+        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>当前状态：<b style={{ color: regime[0] === "欠" ? C.fn : regime[0] === "过" ? C.warn : C.acc }}>{regime}</b>。b 与 2√(km) 的大小关系决定三种情形。</div>
       </Card>
       <Card>
         <Steps title="三种阻尼情形" items={[
-          { title: "欠阻尼", en: "b < 2√(km)", desc: "来回振荡，振幅按 e^(−bt/2m) 衰减。", color: C.fn },
-          { title: "临界阻尼", en: "b = 2√(km)", desc: "不振荡且最快回到平衡，最优刹车。", color: C.acc },
-          { title: "过阻尼", en: "b > 2√(km)", desc: "缓慢爬回平衡，像浸在糖浆里。", color: C.warn },
+          { title: "欠阻尼", en: "b < 2√(km)", desc: "振荡衰减，振幅按 e^(−bt/2m) 递减。", color: C.fn },
+          { title: "临界阻尼", en: "b = 2√(km)", desc: "不振荡且最快回到平衡。", color: C.acc },
+          { title: "过阻尼", en: "b > 2√(km)", desc: "不振荡，单调而缓慢地回到平衡。", color: C.warn },
         ]} />
       </Card>
     </div>

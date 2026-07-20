@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>反常积分，动手看</title>
+<title>反常积分</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -55,11 +55,11 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="反常积分，动手看" subtitle="Improper integral — does the tail have finite area?" />
+      <PageHeader title="反常积分" subtitle="Improper integral — does the tail have finite area?" />
       <Intuition>
-        当积分上界 <b style={{ color: C.fill }}>b → ∞</b>，无限长的尾巴下面积
-        可能<b style={{ color: C.acc }}>收敛</b>到有限值，也可能<b style={{ color: C.warn }}>发散</b>到无穷。
-        拖动 b 变大，看阴影面积是趋于稳定，还是不停增长。
+        当积分上界 <b style={{ color: C.fill }}>b → ∞</b>，无限延伸的尾部所对应的面积
+        可能<b style={{ color: C.acc }}>收敛</b>于有限值，也可能<b style={{ color: C.warn }}>发散</b>至无穷。
+        增大 b，观察阴影面积趋于稳定还是持续增长。
       </Intuition>
 
       <Card>
@@ -85,7 +85,7 @@ function App() {
       <Card>
         <SliderControl label="上界 b" display={b.toFixed(1)} color={C.fill}
           min={2} max={50} step={0.5} value={b} onChange={setB} last
-          hint="把 b 拖到很大，看面积是否停在某个数字上" />
+          hint="增大 b，观察面积是否趋于某一有限值" />
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
           <StatTile label={`面积 ∫₁^${b.toFixed(0)}`} value={area.toFixed(4)} color={C.fill} />
           <StatTile label="b→∞ 极限"
@@ -94,15 +94,15 @@ function App() {
         </div>
         <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>
           {converges
-            ? <span>面积收敛到有限值 <b style={{ color: C.acc }}>{areaBig.toFixed(4)}</b>——反常积分收敛。</span>
-            : <span style={{ color: C.warn }}>面积无上限地增长——反常积分发散。</span>}
+            ? <span>面积收敛于有限值 <b style={{ color: C.acc }}>{areaBig.toFixed(4)}</b>，反常积分收敛。</span>
+            : <span style={{ color: C.warn }}>面积无界增长，反常积分发散。</span>}
         </div>
       </Card>
 
       <Card style={{ marginBottom: 0 }}>
-        <Steps title="反常积分三步" items={[
-          { title: "有限上界", en: "Finite b", desc: "先算 ∫₁ᵇ f dx，这是普通定积分", color: C.fill },
-          { title: "取极限", en: "Take limit", desc: "让 b→∞，观察面积的极限行为", color: C.acc },
+        <Steps title="敛散性的判定" items={[
+          { title: "有限上界", en: "Finite b", desc: "先计算 ∫₁ᵇ f dx，即普通定积分", color: C.fill },
+          { title: "取极限", en: "Take limit", desc: "令 b→∞，考察面积的极限行为", color: C.acc },
           { title: "判敛散", en: "Converge?", desc: "极限有限则收敛，否则发散", color: C.warn },
         ]} />
       </Card>

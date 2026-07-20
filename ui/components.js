@@ -4,28 +4,28 @@ var el = React.createElement;
 
 var C = {
   bg: "#0C0C0E",
-  ink: "rgba(255,255,255,0.92)",
-  sub: "rgba(255,255,255,0.55)",
-  dim: "rgba(255,255,255,0.30)",
-  ghost: "rgba(255,255,255,0.16)",
-  grid: "rgba(255,255,255,0.06)",
-  axis: "rgba(255,255,255,0.10)",
+  ink: "rgba(255,255,255,0.98)",
+  sub: "rgba(255,255,255,0.70)",
+  dim: "rgba(255,255,255,0.44)",
+  ghost: "rgba(255,255,255,0.24)",
+  grid: "rgba(255,255,255,0.08)",
+  axis: "rgba(255,255,255,0.14)",
 
-  fn: "rgba(100,140,255,0.90)",
-  fill: "rgba(160,100,255,0.80)",
-  fillLight: "rgba(160,100,255,0.12)",
-  acc: "#26A69A",
-  accDim: "#80CBC4",
-  warn: "#EF5350",
-  warnDim: "#EF9A9A",
-  rose: "rgba(255,140,180,0.80)",
+  fn: "rgba(70,125,255,1)",
+  fill: "rgba(168,88,255,0.95)",
+  fillLight: "rgba(168,88,255,0.16)",
+  acc: "#00C7B2",
+  accDim: "#5FE6D6",
+  warn: "#FF453A",
+  warnDim: "#FF8A80",
+  rose: "rgba(255,112,168,0.95)",
 };
 
 var STEP_COLORS = [
-  "rgba(100,140,255,0.75)",
-  "rgba(100,140,255,0.55)",
-  "rgba(160,100,255,0.65)",
-  "rgba(38,166,154,0.75)",
+  "rgba(70,125,255,0.95)",
+  "rgba(70,125,255,0.70)",
+  "rgba(168,88,255,0.90)",
+  "rgba(0,199,178,0.95)",
 ];
 
 function Card(props) {
@@ -48,7 +48,7 @@ function PageHeader(props) {
 
 function Intuition(props) {
   return el("div", { className: "intuition-card" },
-    el("div", { className: "intuition-label" }, "直觉"),
+    el("div", { className: "intuition-label" }, "我将用最直白不绕弯子的方式一针见血地告诉你..."),
     el("div", { className: "intuition-text" }, props.children)
   );
 }
@@ -173,12 +173,12 @@ function GridLines(props) {
   var yTicks = props.yTicks || computeTicks(ctx.yMin, ctx.yMax);
   var elems = [];
   xTicks.forEach(function(gx, i) {
-    elems.push(el("line", { key: "gx" + i, x1: ctx.sx(gx), y1: ctx.pad.t, x2: ctx.sx(gx), y2: ctx.H - ctx.pad.b, stroke: "rgba(255,255,255,0.03)", strokeWidth: 0.5 }));
-    elems.push(el("text", { key: "tx" + i, x: ctx.sx(gx), y: ctx.H - ctx.pad.b + 14, fontSize: 9, fill: "rgba(255,255,255,0.12)", textAnchor: "middle", fontFamily: "'Source Code Pro', monospace" }, gx));
+    elems.push(el("line", { key: "gx" + i, x1: ctx.sx(gx), y1: ctx.pad.t, x2: ctx.sx(gx), y2: ctx.H - ctx.pad.b, stroke: "rgba(255,255,255,0.05)", strokeWidth: 0.5 }));
+    elems.push(el("text", { key: "tx" + i, x: ctx.sx(gx), y: ctx.H - ctx.pad.b + 14, fontSize: 9, fill: "rgba(255,255,255,0.22)", textAnchor: "middle", fontFamily: "'Source Code Pro', monospace" }, gx));
   });
   yTicks.forEach(function(gy, i) {
-    elems.push(el("line", { key: "gy" + i, x1: ctx.pad.l, y1: ctx.sy(gy), x2: ctx.W - ctx.pad.r, y2: ctx.sy(gy), stroke: "rgba(255,255,255,0.03)", strokeWidth: 0.5 }));
-    elems.push(el("text", { key: "ty" + i, x: ctx.pad.l - 6, y: ctx.sy(gy) + 3, fontSize: 9, fill: "rgba(255,255,255,0.12)", textAnchor: "end", fontFamily: "'Source Code Pro', monospace" }, gy));
+    elems.push(el("line", { key: "gy" + i, x1: ctx.pad.l, y1: ctx.sy(gy), x2: ctx.W - ctx.pad.r, y2: ctx.sy(gy), stroke: "rgba(255,255,255,0.05)", strokeWidth: 0.5 }));
+    elems.push(el("text", { key: "ty" + i, x: ctx.pad.l - 6, y: ctx.sy(gy) + 3, fontSize: 9, fill: "rgba(255,255,255,0.22)", textAnchor: "end", fontFamily: "'Source Code Pro', monospace" }, gy));
   });
   return el("g", null, elems);
 }
