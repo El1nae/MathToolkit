@@ -46,6 +46,18 @@ function App() {
   const ry = ctx.sy(0) - ctx.sy(r);
   return (
     <div>
+      <SidePanel handleLabel="输入">
+        <PanelBlock title="母线 f(x)">
+          <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
+        </PanelBlock>
+        <PanelBlock title="预设函数">
+          <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
+        </PanelBlock>
+        <PanelBlock title="x 轴范围">
+          <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="圆盘法" subtitle="Disk method — stacking circular slices" />
       <Intuition>
         曲线 <b style={{ color: C.fn }}>f(x)</b> 下方区域绕 x 轴旋转生成旋转体。
@@ -53,13 +65,7 @@ function App() {
         对全部圆盘微元沿轴积分，体积 = π∫f(x)²dx。
       </Intuition>
 
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>母线 f(x)</div>
-        <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
-        <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
-        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
-      </Card>
-
+      <StickyChart>
       <Card variant="chart">
         <div className="chart-label">圆盘截面 @ x = {cx.toFixed(2)}，半径 r = {r.toFixed(3)}，面积 πr² = {(Math.PI * r * r).toFixed(3)}</div>
         <svg viewBox="0 0 360 220">
@@ -68,23 +74,21 @@ function App() {
           <Axes ctx={ctx} />
           <path d={buildBetweenPath(f, (x) => -f(x), ctx)} fill={C.fill} opacity="0.08" />
           <ellipse cx={ctx.sx(cx)} cy={ctx.sy(0)} rx="8" ry={ry}
-            fill={C.acc} fillOpacity="0.22" stroke={C.acc} strokeWidth="2" />
-          <path d={curve} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
-          <path d={curveNeg} fill="none" stroke={C.fn} strokeWidth="1.4" opacity="0.4" strokeDasharray="4 3" />
+            fill={C.acc} fillOpacity="0.22" stroke={C.acc} strokeWidth="1.5" />
+          <path d={curve} fill="none" stroke={C.fn} strokeWidth="1.5" />
+          <path d={curveNeg} fill="none" stroke={C.fn} strokeWidth="1" opacity="0.4" strokeDasharray="4 3" />
           <DashedMarker ctx={ctx} x={cx} color={C.acc} label="x" bold />
-          <circle cx={ctx.sx(cx)} cy={ctx.sy(r)} r="4" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+          <circle cx={ctx.sx(cx)} cy={ctx.sy(r)} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
         </svg>
         <Legend items={[
           { color: C.fn, label: "母线 f(x)" },
           { color: C.acc, label: "圆盘截面 (半径 r)" },
         ]} />
       </Card>
+      </StickyChart>
 
       <Card>
-        <SliderControl label="截面位置 x" display={cx.toFixed(2)} color={C.acc}
-          min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
-          hint="增大 x，圆盘沿轴推进，累计旋转体体积" />
-        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="圆盘半径 r" value={r.toFixed(3)} color={C.acc} />
           <StatTile label="体积 π∫f² (至 x)" value={vol.toFixed(3)} color={C.fill} />
         </div>
@@ -97,6 +101,15 @@ function App() {
           { title: "积分", en: "Stack", desc: "体积 = π∫f(x)²dx", color: C.fill },
         ]} />
       </Card>
+
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="截面位置 x" display={cx.toFixed(2)} color={C.acc}
+            min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
+            hint="增大 x，圆盘沿轴推进，累计旋转体体积" />
+        </div>
+      </BottomDock>
     </div>
   );
 }

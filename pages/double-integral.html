@@ -71,6 +71,24 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入" syntax={[
+        { code: "x^2+y^2", desc: "幂运算 · 双变量" },
+        { code: "x*y", desc: "省略乘号亦可" },
+        { code: "sin(x)*cos(y)", desc: "三角函数" },
+        { code: "exp(-(x^2+y^2))", desc: "指数 eˣ" },
+        { code: "变量用 x, y", desc: "两个自变量" },
+      ]}>
+        <PanelBlock title="f(x, y) =">
+          <FormulaInput value={expr} onChange={setExpr} placeholder="例如 x^2+y^2" />
+        </PanelBlock>
+        <PanelBlock title="x 轴范围">
+          <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+        </PanelBlock>
+        <PanelBlock title="y 轴范围">
+          <RangeInputs min={yMin} max={yMax} onMinChange={setYMin} onMaxChange={setYMax} minLabel="y 最小值" maxLabel="y 最大值" />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="二重积分" subtitle="Double integral — summing volume over a region" />
       <Intuition>
         二重积分将区域剖分为网格单元，每个单元贡献体积 <b style={{ color: C.fill }}>z·dxdy</b>。
@@ -78,15 +96,13 @@ function App() {
         固定 x 或 y 取一条<b style={{ color: C.acc }}>截线</b>，即退化为一维积分。
       </Intuition>
 
-      <Card>
-        <ExampleSwitcher examples={CASES.map((c) => ({ name: c.name }))}
-          active={CASES.findIndex((c) => c.expr === expr)} onChange={(i) => setExpr(CASES[i].expr)} />
-        <div className="section-label" style={{ marginBottom: 6 }}>f(x, y) =</div>
-        <FormulaInput value={expr} onChange={setExpr} placeholder="例如 x^2+y^2" />
-        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
-        <RangeInputs min={yMin} max={yMax} onMinChange={setYMin} onMaxChange={setYMax} minLabel="y 最小值" maxLabel="y 最大值" />
-      </Card>
+      <ExampleSwitcher examples={CASES.map((c) => ({ name: c.name }))}
+        active={CASES.findIndex((c) => c.expr === expr)} onChange={(i) => setExpr(CASES[i].expr)} />
 
+      <ExampleSwitcher examples={[{ name: "沿 x 截取" }, { name: "沿 y 截取" }]}
+        active={sliceDir === "x" ? 0 : 1} onChange={(i) => setSliceDir(i === 0 ? "x" : "y")} />
+
+      <StickyChart>
       <Card variant="chart">
         <div className="chart-label">热力图 z = f(x,y) · 沿 {sliceDir} 方向截取</div>
         <svg viewBox="0 0 320 320">
@@ -94,8 +110,8 @@ function App() {
             <rect key={k} x={gx(c.i)} y={gy(c.j + 1)} width={cw + 0.5} height={ch + 0.5} fill={color(c.z)} opacity="0.9" />
           ))}
           {sliceDir === "x"
-            ? <rect x={gx(sliceIdx)} y={pad} width={cw} height={H - 2 * pad} fill="none" stroke={C.ink} strokeWidth="2.5" />
-            : <rect x={pad} y={gy(sliceIdx + 1)} width={W - 2 * pad} height={ch} fill="none" stroke={C.ink} strokeWidth="2.5" />}
+            ? <rect x={gx(sliceIdx)} y={pad} width={cw} height={H - 2 * pad} fill="none" stroke={C.ink} strokeWidth="1.5" />
+            : <rect x={pad} y={gy(sliceIdx + 1)} width={W - 2 * pad} height={ch} fill="none" stroke={C.ink} strokeWidth="1.5" />}
           <rect x={pad} y={pad} width={W - 2 * pad} height={H - 2 * pad} fill="none" stroke={C.axis} strokeWidth="1" />
         </svg>
         <Legend items={[
@@ -104,14 +120,10 @@ function App() {
           { color: C.ink, label: "截线位置" },
         ]} />
       </Card>
+      </StickyChart>
 
       <Card>
-        <ExampleSwitcher examples={[{ name: "沿 x 截取" }, { name: "沿 y 截取" }]}
-          active={sliceDir === "x" ? 0 : 1} onChange={(i) => setSliceDir(i === 0 ? "x" : "y")} />
-        <SliderControl label={`截线位置 (${sliceDir})`} display={slice.toFixed(2)} color={C.acc}
-          min={-1} max={1} step={0.02} value={slice} onChange={setSlice} last
-          hint="固定一维取截线，二重积分退化为一重积分" />
-        <div className="stat-grid" style={{ gridTemplateColumns: "1fr", marginTop: 12 }}>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr" }}>
           <StatTile label="∬f dA 体积 (黎曼近似)" value={vol.toFixed(3)} color={C.fill} />
         </div>
       </Card>
@@ -123,6 +135,15 @@ function App() {
           { title: "求和", en: "Sum", desc: "全部柱体体积求和 = ∬f dA", color: C.acc },
         ]} />
       </Card>
+
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label={`截线位置 (${sliceDir})`} display={slice.toFixed(2)} color={C.acc}
+            min={-1} max={1} step={0.02} value={slice} onChange={setSlice} last
+            hint="固定一维取截线，二重积分退化为一重积分" />
+        </div>
+      </BottomDock>
     </div>
   );
 }

@@ -57,6 +57,18 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入">
+        <PanelBlock title="输入函数 f(x)">
+          <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={validation.error} />
+        </PanelBlock>
+        <PanelBlock title="预设函数">
+          <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
+        </PanelBlock>
+        <PanelBlock title="x 轴范围">
+          <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="定积分" subtitle="Definite Integral — slicing area under the curve" />
 
       <Intuition>
@@ -64,60 +76,49 @@ function App() {
         增大上界 <b>b</b>，阴影面积随之累积；下方曲线 <b>F(x)</b> 即该累积量随 b 的变化。
       </Intuition>
 
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>输入函数 f(x)</div>
-        <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={validation.error} />
-        <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
-        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <div className="chart-label">∫ f(x) dx，从 a={a.toFixed(2)} 到 b={bClamped.toFixed(2)} ≈ {area.toFixed(3)}</div>
+          <svg viewBox="0 0 360 175">
+            <defs dangerouslySetInnerHTML={{ __html: AREA_GRADIENT_SVG + GLOW_FILTER_SVG }} />
+            <GridLines ctx={topCtx} />
+            <Axes ctx={topCtx} />
+            <path d={fillFull} fill={C.fn} opacity="0.1" />
+            <path d={fillArea} fill="url(#areaFill)" />
+            {rects.map((r, i) => (
+              <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h}
+                fill="none" stroke={C.fill} strokeWidth="0.8" opacity="0.55" />
+            ))}
+            <path d={curve} fill="none" stroke={C.fn} strokeWidth="1.5" />
+            <DashedMarker ctx={topCtx} x={a} color={C.acc} label="a" bold />
+            <DashedMarker ctx={topCtx} x={bClamped} color={C.fill} label="b" bold />
+          </svg>
+          <Legend items={[
+            { color: C.fn, label: "f(x) 曲线" },
+            { color: C.fill, label: "积分面积 area" },
+          ]} />
+        </Card>
 
-      <Card variant="chart">
-        <div className="chart-label">∫ f(x) dx，从 a={a.toFixed(2)} 到 b={bClamped.toFixed(2)} ≈ {area.toFixed(3)}</div>
-        <svg viewBox="0 0 360 175">
-          <defs dangerouslySetInnerHTML={{ __html: AREA_GRADIENT_SVG + GLOW_FILTER_SVG }} />
-          <GridLines ctx={topCtx} />
-          <Axes ctx={topCtx} />
-          <path d={fillFull} fill={C.fn} opacity="0.1" />
-          <path d={fillArea} fill="url(#areaFill)" />
-          {rects.map((r, i) => (
-            <rect key={i} x={r.x} y={r.y} width={r.w} height={r.h}
-              fill="none" stroke={C.fill} strokeWidth="0.8" opacity="0.55" />
-          ))}
-          <path d={curve} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
-          <DashedMarker ctx={topCtx} x={a} color={C.acc} label="a" bold />
-          <DashedMarker ctx={topCtx} x={bClamped} color={C.fill} label="b" bold />
-        </svg>
-        <Legend items={[
-          { color: C.fn, label: "f(x) 曲线" },
-          { color: C.fill, label: "积分面积 area" },
-        ]} />
-      </Card>
-
-      <Card>
-        <SliderControl label="积分上界 b" value={bClamped} min={xMin} max={xMax} step={0.01}
-          display={bClamped.toFixed(2)} color={C.fill} onChange={setB}
-          hint="增大 b，观察面积随黎曼分片逐段累积" last />
-      </Card>
-
-      <Card variant="chart">
-        <div className="chart-label">F(x) = ∫ₐˣ f(t) dt — 累积面积曲线</div>
-        <svg viewBox="0 0 360 150">
-          <GridLines ctx={aCtx} />
-          <Axes ctx={aCtx} />
-          <path d={accum.gray} fill="none" stroke={C.grid} strokeWidth="2.4" />
-          <path d={accum.green} fill="none" stroke={C.acc} strokeWidth="2.4" strokeLinecap="round" />
-          <DashedMarker ctx={aCtx} x={bClamped} color={C.accDim} />
-          <circle cx={aCtx.sx(bClamped)} cy={aCtx.sy(accum.Fb)} r="4" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
-          <text x={aCtx.sx(bClamped)} y={aCtx.sy(accum.Fb) - 8} fontSize="10"
-            fill={C.acc} textAnchor="middle" fontFamily="var(--font-mono)" fontWeight="600">
-            F(b)={accum.Fb.toFixed(2)}
-          </text>
-        </svg>
-        <Legend items={[
-          { color: C.grid, label: "F(x) 完整曲线" },
-          { color: C.acc, label: "累积到 b accumulated" },
-        ]} />
-      </Card>
+        <Card variant="chart">
+          <div className="chart-label">F(x) = ∫ₐˣ f(t) dt — 累积面积曲线</div>
+          <svg viewBox="0 0 360 150">
+            <GridLines ctx={aCtx} />
+            <Axes ctx={aCtx} />
+            <path d={accum.gray} fill="none" stroke={C.grid} strokeWidth="1.5" />
+            <path d={accum.green} fill="none" stroke={C.acc} strokeWidth="1.5" />
+            <DashedMarker ctx={aCtx} x={bClamped} color={C.accDim} />
+            <circle cx={aCtx.sx(bClamped)} cy={aCtx.sy(accum.Fb)} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+            <text x={aCtx.sx(bClamped)} y={aCtx.sy(accum.Fb) - 8} fontSize="10"
+              fill={C.acc} textAnchor="middle" fontFamily="var(--font-mono)" fontWeight="600">
+              F(b)={accum.Fb.toFixed(2)}
+            </text>
+          </svg>
+          <Legend items={[
+            { color: C.grid, label: "F(x) 完整曲线" },
+            { color: C.acc, label: "累积到 b accumulated" },
+          ]} />
+        </Card>
+      </StickyChart>
 
       <Card style={{ marginBottom: 0 }}>
         <Steps title="定积分的构造" items={[
@@ -127,6 +128,16 @@ function App() {
           { title: "求和取极限", en: "Sum", desc: "分片数趋于无穷，和的极限即定积分。" },
         ]} />
       </Card>
+
+      <DockSpacer />
+
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="积分上界 b" value={bClamped} min={xMin} max={xMax} step={0.01}
+            display={bClamped.toFixed(2)} color={C.fill} onChange={setB}
+            hint="增大 b，观察面积随黎曼分片逐段累积" last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

@@ -46,29 +46,34 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入" syntax={[
+        { code: "x-y", desc: "含 x, y 的表达式" },
+        { code: "x*y", desc: "乘积" },
+        { code: "sin(x)", desc: "三角函数" },
+        { code: "变量 x, y", desc: "两个自变量" },
+      ]}>
+        <PanelBlock title="dy/dx = f(x, y) =">
+          <input className="formula-input" value={exprStr} spellCheck={false} autoComplete="off" onChange={(e) => setExprStr(e.target.value)} />
+          <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {PRESETS.map(p => <button key={p.label} className="preset-btn" onClick={() => setExprStr(p.expr)}>{p.label}</button>)}
+          </div>
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="欧拉法" subtitle="Euler's method — walk along tangent lines" backHref="../index.html" />
       <Intuition>欧拉法以<b style={{ color: C.fill }}>折线</b>近似解曲线：在当前点按斜率 f(x,y) 沿切线方向推进步长 h，到达新点后重新计算斜率，如此迭代。<b style={{ color: C.acc }}>步长 h 越小</b>，折线与真解偏差越小，但计算量越大，体现精度与成本的权衡。</Intuition>
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>dy/dx = f(x, y) =</div>
-        <input className="formula-input" value={exprStr} spellCheck={false} autoComplete="off" onChange={(e) => setExprStr(e.target.value)} />
-        <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {PRESETS.map(p => <button key={p.label} className="preset-btn" onClick={() => setExprStr(p.expr)}>{p.label}</button>)}
-        </div>
-      </Card>
-      <Card variant="chart">
-        <svg viewBox="0 0 360 260">
-          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
-          <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
-          <path d={toPath(ref)} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" />
-          <path d={toPath(euler)} fill="none" stroke={C.acc} strokeWidth="2" strokeDasharray="1 0" />
-          {euler.map((p, i) => <circle key={i} cx={ctx.sx(p[0])} cy={ctx.sy(Math.max(yMin, Math.min(yMax, p[1])))} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.2" />)}
-        </svg>
-        <Legend items={[{ color: C.fn, label: "真解 (RK4)" }, { color: C.acc, label: "欧拉折线" }]} />
-      </Card>
-      <Card>
-        <SliderControl label="步长 h" display={h.toFixed(2)} color={C.acc} min={0.05} max={1} step={0.05} value={h} onChange={setH} />
-        <SliderControl label="初值 y₀" display={y0.toFixed(1)} color={C.fill} min={-2} max={3} step={0.1} value={y0} onChange={setY0} last />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <svg viewBox="0 0 360 260">
+            <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+            <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+            <path d={toPath(ref)} fill="none" stroke={C.fn} strokeWidth="1.5" />
+            <path d={toPath(euler)} fill="none" stroke={C.acc} strokeWidth="1.5" strokeDasharray="1 0" />
+            {euler.map((p, i) => <circle key={i} cx={ctx.sx(p[0])} cy={ctx.sy(Math.max(yMin, Math.min(yMax, p[1])))} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.2" />)}
+          </svg>
+          <Legend items={[{ color: C.fn, label: "真解 (RK4)" }, { color: C.acc, label: "欧拉折线" }]} />
+        </Card>
+      </StickyChart>
       <Card>
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="步数" value={Math.max(0, euler.length - 1)} color={C.acc} />
@@ -83,6 +88,17 @@ function App() {
           { title: "迭代", en: "xₙ₊₁ = xₙ + h", desc: "到达新点后重新计算斜率，逐段逼近真解。", color: C.fill },
         ]} />
       </Card>
+
+      <DockSpacer />
+
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="步长 h" display={h.toFixed(2)} color={C.acc} min={0.05} max={1} step={0.05} value={h} onChange={setH} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="初值 y₀" display={y0.toFixed(1)} color={C.fill} min={-2} max={3} step={0.1} value={y0} onChange={setY0} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

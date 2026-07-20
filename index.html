@@ -7,23 +7,23 @@
 <link rel="stylesheet" href="ui/theme.css" />
 <link rel="stylesheet" href="ui/components.css" />
 <style>
-body{min-height:100vh;padding:72px 28px 60px}
+body{min-height:100vh;padding:56px 28px 60px}
 .wrap{max-width:680px;margin:0 auto;text-align:center}
 .logo{margin-bottom:8px}
-h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px;text-shadow:0 0 22px rgba(255,255,255,0.38),0 0 50px rgba(120,150,255,0.20)}
-.sub{font-size:13px;color:var(--text-3);margin-bottom:36px}
+h1{font-family:var(--font-mono);font-size:28px;font-weight:600;letter-spacing:0.04em;margin:0 0 4px;text-shadow:none}
+.sub{font-family:var(--font-mono);font-size:12px;letter-spacing:0.03em;color:var(--text-3);margin-bottom:36px}
 .cat{display:flex;align-items:center;gap:10px;margin:24px 0 10px;text-align:left}
-.cat span{font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-4)}
-.cat::after{content:'';flex:1;height:1px;background:var(--border-1)}
+.cat span{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-4)}
+.cat::after{content:'';flex:1;height:0.75px;background:var(--border-2)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:left}
 </style>
 </head>
 <body>
 <div class="wrap">
   <svg class="logo" width="48" height="48" viewBox="0 0 48 48">
-    <circle cx="24" cy="24" r="22" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
-    <path d="M10 34 Q18 8 26 24 T42 14" fill="none" stroke="rgba(100,140,255,0.90)" stroke-width="2.5" stroke-linecap="round"/>
-    <circle cx="26" cy="24" r="3" fill="rgba(160,100,255,0.80)"/>
+    <circle cx="24" cy="24" r="22" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="0.75"/>
+    <path d="M10 34 Q18 8 26 24 T42 14" fill="none" stroke="#7C9CC4" stroke-width="1.5"/>
+    <circle cx="26" cy="24" r="2.5" fill="#7C9CC4"/>
   </svg>
   <h1>MathToolkit</h1>
   <p class="sub">Interactive Math Visualizations — 拖动参数即时观察概念的变化</p>
@@ -32,7 +32,7 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px;t
   <div class="grid">
     <a class="glass-1 nav-card" href="pages/derivative.html" style="--glow-color:rgba(100,140,255,0.45)">
       <div class="dot" style="background:rgba(100,140,255,0.65)"></div>
-      <h3>微分 / 导数</h3>
+      <h3>微分</h3>
       <div class="en">Derivative</div>
       <p>割线趋于切线，得到瞬时变化率</p>
     </a>
@@ -240,7 +240,7 @@ h1{font-family:var(--font-title);font-size:32px;font-weight:700;margin:0 0 4px;t
     </a>
   </div>
 
-  <p class="footer-text">不妙工具 · Interactive Math Visualizations</p>
+  <p class="footer-text">MathToolkit · Interactive Math Visualizations</p>
 </div>
 </body>
 </html>

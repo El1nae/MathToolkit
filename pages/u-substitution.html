@@ -67,6 +67,18 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入">
+        <PanelBlock title="被积函数 f(x)">
+          <FormulaInput value={fExpr} onChange={setFExpr} isError={fExpr.trim() && !fc.valid} errorMsg={fc.error} />
+        </PanelBlock>
+        <PanelBlock title="换元 u(x)">
+          <FormulaInput value={uExpr} onChange={setUExpr} isError={uExpr.trim() && !uc.valid} errorMsg={uc.error} />
+        </PanelBlock>
+        <PanelBlock title="x 轴范围">
+          <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="换元积分" subtitle="u-substitution — same area, new coordinate" />
       <Intuition>
         换元 <b style={{ color: C.acc }}>u = u(x)</b> 即对横轴施加坐标变换。
@@ -74,39 +86,34 @@ function App() {
         因子 du = u′(x)dx 恰好补偿横轴的缩放。
       </Intuition>
 
-      <Card>
-        <ExampleSwitcher examples={CASES.map((c) => ({ name: c.name }))}
-          active={CASES.findIndex((c) => c.fExpr === fExpr)} onChange={(i) => applyCase(CASES[i])} />
-        <div className="section-label" style={{ marginBottom: 6 }}>被积函数 f(x)</div>
-        <FormulaInput value={fExpr} onChange={setFExpr} isError={fExpr.trim() && !fc.valid} errorMsg={fc.error} />
-        <div className="section-label" style={{ marginBottom: 6, marginTop: 10 }}>换元 u(x)</div>
-        <FormulaInput value={uExpr} onChange={setUExpr} isError={uExpr.trim() && !uc.valid} errorMsg={uc.error} />
-        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
-      </Card>
+      <ExampleSwitcher examples={CASES.map((c) => ({ name: c.name }))}
+        active={CASES.findIndex((c) => c.fExpr === fExpr)} onChange={(i) => applyCase(CASES[i])} />
 
-      <Card variant="chart">
-        <div className="chart-label">原坐标系 x · ∫f(x)dx ≈ {areaX.toFixed(4)}</div>
-        <svg viewBox="0 0 360 165">
-          <defs dangerouslySetInnerHTML={{ __html: AREA_GRADIENT_SVG + GLOW_FILTER_SVG }} />
-          <GridLines ctx={xCtx} />
-          <Axes ctx={xCtx} />
-          <path d={buildFillPath(f, xCtx, xMin, xMax)} fill="url(#areaFill)" />
-          <path d={buildCurvePath(f, xCtx)} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
-        </svg>
-        <Legend items={[{ color: C.fn, label: "f(x)" }, { color: C.fill, label: "面积 (x 系)" }]} />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <div className="chart-label">原坐标系 x · ∫f(x)dx ≈ {areaX.toFixed(4)}</div>
+          <svg viewBox="0 0 360 165">
+            <defs dangerouslySetInnerHTML={{ __html: AREA_GRADIENT_SVG + GLOW_FILTER_SVG }} />
+            <GridLines ctx={xCtx} />
+            <Axes ctx={xCtx} />
+            <path d={buildFillPath(f, xCtx, xMin, xMax)} fill="url(#areaFill)" />
+            <path d={buildCurvePath(f, xCtx)} fill="none" stroke={C.fn} strokeWidth="1.5" />
+          </svg>
+          <Legend items={[{ color: C.fn, label: "f(x)" }, { color: C.fill, label: "面积 (x 系)" }]} />
+        </Card>
 
-      <Card variant="chart">
-        <div className="chart-label">换元后 u 坐标系 · ∫g(u)du ≈ {areaX.toFixed(4)} （相等）</div>
-        <svg viewBox="0 0 360 165">
-          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
-          <GridLines ctx={uPtsPath.uCtx} />
-          <Axes ctx={uPtsPath.uCtx} />
-          <path d={uPtsPath.fill} fill={C.acc} opacity="0.16" />
-          <path d={uPtsPath.curve} fill="none" stroke={C.acc} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
-        </svg>
-        <Legend items={[{ color: C.acc, label: "g(u)=f/u′" }, { color: C.acc, label: "面积 (u 系)" }]} />
-      </Card>
+        <Card variant="chart">
+          <div className="chart-label">换元后 u 坐标系 · ∫g(u)du ≈ {areaX.toFixed(4)} （相等）</div>
+          <svg viewBox="0 0 360 165">
+            <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+            <GridLines ctx={uPtsPath.uCtx} />
+            <Axes ctx={uPtsPath.uCtx} />
+            <path d={uPtsPath.fill} fill={C.acc} opacity="0.16" />
+            <path d={uPtsPath.curve} fill="none" stroke={C.acc} strokeWidth="1.5" />
+          </svg>
+          <Legend items={[{ color: C.acc, label: "g(u)=f/u′" }, { color: C.acc, label: "面积 (u 系)" }]} />
+        </Card>
+      </StickyChart>
 
       <Card style={{ marginBottom: 0 }}>
         <Steps title="换元积分的构造" items={[

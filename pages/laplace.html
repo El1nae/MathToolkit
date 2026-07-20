@@ -43,6 +43,7 @@ function App() {
     <div>
       <PageHeader title="拉普拉斯变换" subtitle="Laplace — poles decide how a system responds" backHref="../index.html" />
       <Intuition>系统的动态特性由 <b>s 平面</b>上<b style={{ color: C.warn }}>极点</b>的位置决定。极点<b>实部 σ</b> 决定响应的衰减或发散（左半平面对应衰减，即稳定），<b>虚部 ω</b> 决定振荡频率。右侧为该对共轭极点对应的时域响应 e^(σt)cos(ωt)。</Intuition>
+      <StickyChart>
       <Card variant="chart">
         <div className="chart-label">s 平面（极点 ×）</div>
         <svg viewBox="0 0 360 300">
@@ -56,8 +57,8 @@ function App() {
           <line x1="0" y1={ctx.sy(0)} x2="360" y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1.2" />
           {[omega, -omega].map((w, i) => (
             <g key={i}>
-              <line x1={ctx.sx(sigma) - 6} y1={ctx.sy(w) - 6} x2={ctx.sx(sigma) + 6} y2={ctx.sy(w) + 6} stroke={C.warn} strokeWidth="2.5" />
-              <line x1={ctx.sx(sigma) - 6} y1={ctx.sy(w) + 6} x2={ctx.sx(sigma) + 6} y2={ctx.sy(w) - 6} stroke={C.warn} strokeWidth="2.5" />
+              <line x1={ctx.sx(sigma) - 6} y1={ctx.sy(w) - 6} x2={ctx.sx(sigma) + 6} y2={ctx.sy(w) + 6} stroke={C.warn} strokeWidth="1.5" />
+              <line x1={ctx.sx(sigma) - 6} y1={ctx.sy(w) + 6} x2={ctx.sx(sigma) + 6} y2={ctx.sy(w) - 6} stroke={C.warn} strokeWidth="1.5" />
             </g>
           ))}
           <text x={ctx.sx(-2)} y="20" fill={C.acc} fontSize="10" fontFamily="var(--font-mono)">稳定区 (左半平面)</text>
@@ -69,14 +70,11 @@ function App() {
           <line x1={rCtx.pad.l} y1={rCtx.sy(0)} x2={rCtx.W - rCtx.pad.r} y2={rCtx.sy(0)} stroke={C.axis} strokeWidth="1" />
           <path d={envUp} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
           <path d={envDn} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
-          <path d={rPath} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" />
+          <path d={rPath} fill="none" stroke={C.fn} strokeWidth="1.5" />
         </svg>
         <Legend items={[{ color: C.fn, label: "响应 y(t)" }, { color: C.dim, label: "包络 e^(σt)", dashed: true }]} />
       </Card>
-      <Card>
-        <SliderControl label="极点实部 σ" display={sigma.toFixed(2)} color={C.warn} min={-2} max={1} step={0.02} value={sigma} onChange={setSigma} />
-        <SliderControl label="极点虚部 ω" display={omega.toFixed(2)} color={C.fn} min={0} max={6} step={0.05} value={omega} onChange={setOmega} last />
-      </Card>
+      </StickyChart>
       <Card>
         <div style={{ fontSize: 13, color: C.sub }}>当前系统：<b style={{ color: marginal ? C.warn : stable ? C.acc : C.warn }}>{marginal ? "临界（等幅振荡）" : stable ? "稳定（响应衰减至 0）" : "不稳定（响应发散）"}</b>。极点越靠左衰减越快，虚部越大振荡频率越高。</div>
       </Card>
@@ -87,6 +85,15 @@ function App() {
           { title: "看虚部", en: "Im(s) = ω", desc: "ω 决定振荡频率，越大振荡越快。", color: C.fn },
         ]} />
       </Card>
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="极点实部 σ" display={sigma.toFixed(2)} color={C.warn} min={-2} max={1} step={0.02} value={sigma} onChange={setSigma} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="极点虚部 ω" display={omega.toFixed(2)} color={C.fn} min={0} max={6} step={0.05} value={omega} onChange={setOmega} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

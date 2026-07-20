@@ -65,26 +65,22 @@ function App() {
           active={keys.indexOf(waveType)} onChange={(i) => { setWaveType(keys[i]); }} />
       </Card>
 
+      <StickyChart>
       <Card variant="chart">
         <div className="chart-label">目标波形 vs 前 {n} 个谐波之和</div>
         <svg viewBox="0 0 360 240">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
           <GridLines ctx={ctx} />
           <Axes ctx={ctx} />
-          <path d={targetPath} fill="none" stroke={C.dim} strokeWidth="1.6" strokeDasharray="5 4" />
-          <path d={sumPath} fill="none" stroke={C.fn} strokeWidth="2.4" filter="url(#glow)" strokeLinecap="round" />
+          <path d={targetPath} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="6 4" />
+          <path d={sumPath} fill="none" stroke={C.fn} strokeWidth="1.5" />
         </svg>
         <Legend items={[
           { color: C.dim, label: "目标波形 target", dashed: true },
           { color: C.fn, label: `部分和 (n=${n})` },
         ]} />
       </Card>
-
-      <Card>
-        <SliderControl label="谐波项数 n" display={n} min={1} max={20} step={1} value={n}
-          color={C.fn} onChange={(v) => setN(Math.round(v))} last
-          hint="增大 n，观察部分和向目标波形收敛" />
-      </Card>
+      </StickyChart>
 
       <Card style={{ marginBottom: 0 }}>
         <Steps title="傅里叶级数的构成" items={[
@@ -93,6 +89,14 @@ function App() {
           { title: "观察逼近", en: "Converge", desc: "n 越大逼近越精确，不连续点仍存在吉布斯过冲", color: C.fill },
         ]} />
       </Card>
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="谐波项数 n" display={n} min={1} max={20} step={1} value={n}
+            color={C.fn} onChange={(v) => setN(Math.round(v))} last
+            hint="增大 n，观察部分和向目标波形收敛" />
+        </div>
+      </BottomDock>
     </div>
   );
 }

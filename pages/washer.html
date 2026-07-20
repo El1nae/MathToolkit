@@ -52,6 +52,20 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入">
+        <PanelBlock title="外层 f(x)">
+          <FormulaInput value={fStr} onChange={setFStr} isError={fStr.trim() && !fc.valid} errorMsg={fc.error} />
+          <PresetBar presets={PRESETS.slice(0, 6)} onSelect={applyF} />
+        </PanelBlock>
+        <PanelBlock title="内层 g(x)">
+          <FormulaInput value={gStr} onChange={setGStr} isError={gStr.trim() && !gc.valid} errorMsg={gc.error} />
+          <PresetBar presets={PRESETS.slice(0, 6)} onSelect={applyG} />
+        </PanelBlock>
+        <PanelBlock title="x 轴范围">
+          <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="垫圈法" subtitle="Washer method — volume between two curves" />
       <Intuition>
         两条曲线 <b style={{ color: C.fn }}>f</b>（外）与 <b style={{ color: C.fill }}>g</b>（内）之间的区域绕 x 轴旋转，
@@ -59,16 +73,7 @@ function App() {
         外半径 R=f(x)，内半径 r=g(x)，沿 x 积分全部圆环得体积。
       </Intuition>
 
-      <Card>
-        <div className="section-label" style={{ marginBottom: 6 }}>外层 f(x)</div>
-        <FormulaInput value={fStr} onChange={setFStr} isError={fStr.trim() && !fc.valid} errorMsg={fc.error} />
-        <PresetBar presets={PRESETS.slice(0, 6)} onSelect={applyF} />
-        <div className="section-label" style={{ marginBottom: 6, marginTop: 12 }}>内层 g(x)</div>
-        <FormulaInput value={gStr} onChange={setGStr} isError={gStr.trim() && !gc.valid} errorMsg={gc.error} />
-        <PresetBar presets={PRESETS.slice(0, 6)} onSelect={applyG} />
-        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
-      </Card>
-
+      <StickyChart>
       <Card variant="chart">
         <div className="chart-label">圆环截面 @ x = {cx.toFixed(2)} · π(R²−r²)</div>
         <svg viewBox="0 0 360 220">
@@ -76,13 +81,13 @@ function App() {
           <GridLines ctx={ctx} />
           <Axes ctx={ctx} />
           <path d={buildBetweenPath(f, g, ctx)} fill={C.fill} opacity="0.1" />
-          <path d={buildCurvePath(f, ctx)} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
-          <path d={buildCurvePath(g, ctx)} fill="none" stroke={C.fill} strokeWidth="2" strokeLinecap="round" />
+          <path d={buildCurvePath(f, ctx)} fill="none" stroke={C.fn} strokeWidth="1.5" />
+          <path d={buildCurvePath(g, ctx)} fill="none" stroke={C.fill} strokeWidth="1.5" />
           {/* washer cross-section as concentric ellipses */}
           <ellipse cx={ctx.sx(cx)} cy={ctx.sy(0)} rx="9" ry={ctx.sy(0) - ctx.sy(Rout)}
-            fill={C.acc} fillOpacity="0.14" stroke={C.acc} strokeWidth="2" />
+            fill={C.acc} fillOpacity="0.14" stroke={C.acc} strokeWidth="1.5" />
           <ellipse cx={ctx.sx(cx)} cy={ctx.sy(0)} rx="5" ry={ctx.sy(0) - ctx.sy(rin)}
-            fill={C.bg} stroke={C.warn} strokeWidth="1.6" />
+            fill={C.bg} stroke={C.warn} strokeWidth="1.5" />
           <DashedMarker ctx={ctx} x={cx} color={C.acc} label="x" bold />
         </svg>
         <Legend items={[
@@ -91,11 +96,10 @@ function App() {
           { color: C.acc, label: "圆环" },
         ]} />
       </Card>
+      </StickyChart>
 
       <Card>
-        <SliderControl label="截面位置 x" display={cx.toFixed(2)} color={C.acc}
-          min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last />
-        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: 12 }}>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
           <StatTile label="外半径 R" value={R.toFixed(2)} color={C.fn} />
           <StatTile label="内半径 r" value={r.toFixed(2)} color={C.fill} />
           <StatTile label="体积 (至 x)" value={vol.toFixed(2)} color={C.acc} />
@@ -109,6 +113,14 @@ function App() {
           { title: "积分", en: "Sum", desc: "体积 = π∫(f²−g²)dx", color: C.fill },
         ]} />
       </Card>
+
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="截面位置 x" display={cx.toFixed(2)} color={C.acc}
+            min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

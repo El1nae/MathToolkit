@@ -18,14 +18,14 @@
   --text-3: rgba(255,255,255,0.44);
   --text-4: rgba(255,255,255,0.26);
 
-  --gem-sapphire: rgba(70,125,255,1);
-  --gem-amethyst: rgba(168,88,255,0.95);
-  --gem-amethyst-light: rgba(168,88,255,0.16);
-  --gem-teal: #00C7B2;
-  --gem-teal-dim: #5FE6D6;
-  --gem-red: #FF453A;
-  --gem-red-dim: #FF8A80;
-  --gem-rose: rgba(255,112,168,0.95);
+  --gem-sapphire: #7C9CC4;
+  --gem-amethyst: #B79B77;
+  --gem-amethyst-light: rgba(183,155,119,0.14);
+  --gem-teal: #7FB0A6;
+  --gem-teal-dim: #A6C8C0;
+  --gem-red: #E0655C;
+  --gem-red-dim: #E8938C;
+  --gem-rose: #C98B9E;
 
   --font-title: 'Lora', Georgia, serif;
   --font-body: 'DM Sans', system-ui, sans-serif;

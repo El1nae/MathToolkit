@@ -59,6 +59,15 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入">
+        <PanelBlock title="输入函数 f(x)">
+          <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
+        </PanelBlock>
+        <PanelBlock title="预设函数">
+          <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="中值定理" subtitle="Mean Value Theorem — a tangent parallel to the secant" />
       <Intuition>
         连接端点 a、b 的 <b style={{ color: C.fill }}>割线</b> 斜率为区间平均变化率。
@@ -66,41 +75,33 @@ function App() {
         <b style={{ color: C.fn }}>切线</b>与割线平行，即瞬时变化率等于平均变化率。
       </Intuition>
 
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>输入函数 f(x)</div>
-        <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
-        <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
-      </Card>
-
-      <Card variant="chart">
-        <div className="chart-label">割线与平行切线 · 平均斜率 = {slope.toFixed(3)}</div>
-        <svg viewBox="0 0 360 240">
-          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
-          <GridLines ctx={ctx} />
-          <Axes ctx={ctx} />
-          <line x1={ctx.sx(a)} y1={ctx.sy(f(a))} x2={ctx.sx(b)} y2={ctx.sy(f(b))}
-            stroke={C.fill} strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round" />
-          <line x1={ctx.sx(c - 1)} y1={ctx.sy(fc - slope)} x2={ctx.sx(c + 1)} y2={ctx.sy(fc + slope)}
-            stroke={C.acc} strokeWidth="2" strokeLinecap="round" />
-          <path d={curve} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
-          <circle cx={ctx.sx(a)} cy={ctx.sy(f(a))} r="4" fill={C.fill} stroke={C.bg} strokeWidth="1.5" />
-          <circle cx={ctx.sx(b)} cy={ctx.sy(f(b))} r="4" fill={C.fill} stroke={C.bg} strokeWidth="1.5" />
-          <DashedMarker ctx={ctx} x={c} color={C.acc} label="c" bold />
-          <circle cx={ctx.sx(c)} cy={ctx.sy(Math.max(yMin, Math.min(yMax, fc)))} r="5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
-        </svg>
-        <Legend items={[
-          { color: C.fn, label: "f(x)" },
-          { color: C.fill, label: "割线 secant", dashed: true },
-          { color: C.acc, label: "切线 @ c" },
-        ]} />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <div className="chart-label">割线与平行切线 · 平均斜率 = {slope.toFixed(3)}</div>
+          <svg viewBox="0 0 360 240">
+            <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+            <GridLines ctx={ctx} />
+            <Axes ctx={ctx} />
+            <line x1={ctx.sx(a)} y1={ctx.sy(f(a))} x2={ctx.sx(b)} y2={ctx.sy(f(b))}
+              stroke={C.fill} strokeWidth="1" strokeDasharray="6 4" />
+            <line x1={ctx.sx(c - 1)} y1={ctx.sy(fc - slope)} x2={ctx.sx(c + 1)} y2={ctx.sy(fc + slope)}
+              stroke={C.acc} strokeWidth="1.5" />
+            <path d={curve} fill="none" stroke={C.fn} strokeWidth="1.5" />
+            <circle cx={ctx.sx(a)} cy={ctx.sy(f(a))} r="3" fill={C.fill} stroke={C.bg} strokeWidth="1.5" />
+            <circle cx={ctx.sx(b)} cy={ctx.sy(f(b))} r="3" fill={C.fill} stroke={C.bg} strokeWidth="1.5" />
+            <DashedMarker ctx={ctx} x={c} color={C.acc} label="c" bold />
+            <circle cx={ctx.sx(c)} cy={ctx.sy(Math.max(yMin, Math.min(yMax, fc)))} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+          </svg>
+          <Legend items={[
+            { color: C.fn, label: "f(x)" },
+            { color: C.fill, label: "割线 secant", dashed: true },
+            { color: C.acc, label: "切线 @ c" },
+          ]} />
+        </Card>
+      </StickyChart>
 
       <Card>
-        <SliderControl label="左端点 a" display={a.toFixed(2)} color={C.fill}
-          min={xMin - 0.4} max={b - 0.4} step={0.05} value={a} onChange={(v) => setA(v)} />
-        <SliderControl label="右端点 b" display={b.toFixed(2)} color={C.fill}
-          min={a + 0.4} max={xMax + 0.4} step={0.05} value={b} onChange={(v) => setB(v)} last />
-        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="平均斜率 (割线)" value={slope.toFixed(3)} color={C.fill} />
           <StatTile label="c 点 (f′(c)=平均)" value={c.toFixed(3)} color={C.acc} />
         </div>
@@ -113,6 +114,19 @@ function App() {
           { title: "平行", en: "Parallel", desc: "c 处切线与割线平行，斜率相等", color: C.fn },
         ]} />
       </Card>
+
+      <DockSpacer />
+
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="左端点 a" display={a.toFixed(2)} color={C.fill}
+            min={xMin - 0.4} max={b - 0.4} step={0.05} value={a} onChange={(v) => setA(v)} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="右端点 b" display={b.toFixed(2)} color={C.fill}
+            min={a + 0.4} max={xMax + 0.4} step={0.05} value={b} onChange={(v) => setB(v)} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

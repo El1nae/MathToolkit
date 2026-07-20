@@ -74,58 +74,58 @@ function App() {
   const note = framePreset ? framePreset.note : "自定义公式：x(λ)·h(t−λ) 的重叠面积即为当前 y(t)。";
   return (
     <div>
+      <SidePanel handleLabel="输入" syntax={[
+        { code: "l>=0&&l<=1?1:0", desc: "方波（条件式）" },
+        { code: "exp(-l)", desc: "指数衰减" },
+        { code: "sin(l)", desc: "三角函数" },
+        { code: "变量用 l", desc: "代表 λ" },
+      ]}>
+        <PanelBlock title="输入信号 x(λ)">
+          <input className={"formula-input" + (xv.valid ? "" : " error")} value={xStr} spellCheck={false} autoComplete="off" onChange={(e) => setXStr(e.target.value)} />
+        </PanelBlock>
+        <PanelBlock title="冲激响应 h(λ)">
+          <input className={"formula-input" + (hv.valid ? "" : " error")} value={hStr} spellCheck={false} autoComplete="off" onChange={(e) => setHStr(e.target.value)} />
+          {errMsg && <div style={{ fontSize: 11, color: C.warn, marginTop: 8 }}>{errMsg}</div>}
+        </PanelBlock>
+        <PanelBlock title="λ 范围">
+          <div style={{ display: "flex", gap: 10 }}>
+            <input type="number" step="0.5" className="num-input" value={lamMin}
+              onChange={(e) => { const v = parseFloat(e.target.value); if (isFinite(v) && v < lamMax) setLamMin(v); }} />
+            <input type="number" step="0.5" className="num-input" value={lamMax}
+              onChange={(e) => { const v = parseFloat(e.target.value); if (isFinite(v) && v > lamMin) setLamMax(v); }} />
+          </div>
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="卷积积分" subtitle="Convolution — fold, shift, multiply, integrate" />
       <Intuition>
         将 <b>h</b> 关于原点翻转，平移至位置 <b>t</b>，与固定的 <b>x</b> 逐点相乘；
         <b>乘积在重叠区间上的积分</b>即为该时刻的输出 <b>y(t)</b>。t 遍历取值范围时，得到完整输出曲线。
       </Intuition>
       <ExampleSwitcher examples={CONV_PRESETS} active={activeIdx < 0 ? -1 : activeIdx} onChange={(i) => applyPreset(CONV_PRESETS[i])} />
-      <Card>
-        <div className="section-label" style={{ marginBottom: 6 }}>输入信号 x(λ)</div>
-        <input className={"formula-input" + (xv.valid ? "" : " error")} value={xStr} spellCheck={false} autoComplete="off" onChange={(e) => setXStr(e.target.value)} />
-        <div className="section-label" style={{ margin: "10px 0 6px" }}>冲激响应 h(λ)</div>
-        <input className={"formula-input" + (hv.valid ? "" : " error")} value={hStr} spellCheck={false} autoComplete="off" onChange={(e) => setHStr(e.target.value)} />
-        <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div className="section-label" style={{ marginBottom: 4 }}>λ 最小值</div>
-            <input type="number" step="0.5" className="num-input" value={lamMin}
-              onChange={(e) => { const v = parseFloat(e.target.value); if (isFinite(v) && v < lamMax) setLamMin(v); }} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div className="section-label" style={{ marginBottom: 4 }}>λ 最大值</div>
-            <input type="number" step="0.5" className="num-input" value={lamMax}
-              onChange={(e) => { const v = parseFloat(e.target.value); if (isFinite(v) && v > lamMin) setLamMax(v); }} />
-          </div>
-        </div>
-        {errMsg && <div style={{ fontSize: 11, color: C.warn, marginTop: 8 }}>{errMsg}</div>}
-        <div style={{ fontSize: 11, color: C.dim, marginTop: 8, lineHeight: 1.6 }}>
-          支持条件式，如 <code>l&gt;=0&amp;&amp;l&lt;=1?1:0</code>（方波）。变量名用 <b>l</b> 代表 λ。
-        </div>
-      </Card>
+      <StickyChart>
       <Card variant="chart">
         <svg viewBox="0 0 360 175">
           <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.grid} strokeWidth="1.5" />
           <path d={paths.xFill} fill={C.fn} opacity="0.14" />
-          <path d={paths.xPath} fill="none" stroke={C.fn} strokeWidth="2" />
-          <path d={paths.hPath} fill="none" stroke={HCOL} strokeWidth="2" />
+          <path d={paths.xPath} fill="none" stroke={C.fn} strokeWidth="1.5" />
+          <path d={paths.hPath} fill="none" stroke={HCOL} strokeWidth="1.5" />
           <path d={paths.prodFill} fill={C.fill} opacity="0.5" />
           <DashedMarker ctx={ctx} x={t} color={C.sub} width={1} label={"t=" + t.toFixed(2)} bold />
         </svg>
         <Legend items={[{ color: C.fn, label: "x(λ) 输入" }, { color: HCOL, label: "h(t−λ) 翻转并平移" }, { color: C.fill, label: "乘积面积" }]} />
       </Card>
-      <Card>
-        <SliderControl label="时间 t（平移 h）" display={t.toFixed(2)} color={C.fill} min={tMin} max={tMax} step={0.01} value={t} onChange={setT} last />
-      </Card>
       <Card variant="chart">
         <svg viewBox="0 0 360 150">
           <line x1={out.P} y1={out.oy(0)} x2={out.W - out.P} y2={out.oy(0)} stroke={C.grid} strokeWidth="1.5" />
-          <path d={out.full} fill="none" stroke={C.grid} strokeWidth="2.5" />
-          <path d={outDone} fill="none" stroke={C.acc} strokeWidth="2.5" />
-          <circle cx={out.ox(t)} cy={out.oy(y)} r="4.5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+          <path d={out.full} fill="none" stroke={C.grid} strokeWidth="1.5" />
+          <path d={outDone} fill="none" stroke={C.acc} strokeWidth="1.5" />
+          <circle cx={out.ox(t)} cy={out.oy(y)} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
           <text x={out.ox(t)} y={out.oy(y) - 9} fontSize="11" fill={C.acc} fontWeight="700" textAnchor="middle" fontFamily="var(--font-mono)">y(t) = {y.toFixed(3)}</text>
         </svg>
         <Legend items={[{ color: C.acc, label: "y(t) 输出 = 积分值" }]} />
       </Card>
+      </StickyChart>
       <p style={{ fontSize: 12, color: C.sub, lineHeight: 1.6, margin: "12px 2px 18px", fontStyle: "italic" }}>{note}</p>
       <Card>
         <Steps title="四步理解卷积" items={[
@@ -135,6 +135,12 @@ function App() {
           { title: "积分 Integrate", en: "∫ x(λ)h(t−λ) dλ", desc: "对乘积积分，即得 y(t)。", color: STEP_COLORS[3] },
         ]} />
       </Card>
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="时间 t（平移 h）" display={t.toFixed(2)} color={C.fill} min={tMin} max={tMax} step={0.01} value={t} onChange={setT} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

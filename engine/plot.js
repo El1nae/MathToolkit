@@ -176,5 +176,5 @@ function buildOutputDone(xFn, hFn, lamMin, lamMax, tMin, tMax, tCur, yMax, outCt
   return d;
 }
 
-var GLOW_FILTER_SVG = '<filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
-var AREA_GRADIENT_SVG = '<linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(160,100,255,1)" stop-opacity="0.28"/><stop offset="100%" stop-color="rgba(100,140,255,1)" stop-opacity="0.03"/></linearGradient>';
+var GLOW_FILTER_SVG = '<filter id="glow" x="-5%" y="-5%" width="110%" height="110%"><feOffset dx="0" dy="0"/></filter>';
+var AREA_GRADIENT_SVG = '<linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(124,156,196,1)" stop-opacity="0.16"/><stop offset="100%" stop-color="rgba(124,156,196,1)" stop-opacity="0.02"/></linearGradient>';

@@ -50,12 +50,13 @@ function App() {
     <div>
       <PageHeader title="奈奎斯特采样" subtitle="Sampling — you must sample faster than twice the frequency" backHref="../index.html" />
       <Intuition>由离散样本无失真还原连续信号，要求采样率 <b>fs</b> <b style={{ color: C.acc }}>大于信号最高频率的两倍</b>（fs &gt; 2f）。否则高频分量将被误判为低频分量，即<b style={{ color: C.warn }}>混叠</b>；车轮反向旋转、摩尔纹均属此现象。</Intuition>
+      <StickyChart>
       <Card variant="chart">
         <div className="chart-label">① 连续信号 x(t)</div>
         <svg viewBox="0 0 360 150">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
           <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
-          <path d={origPath} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" />
+          <path d={origPath} fill="none" stroke={C.fn} strokeWidth="1.5" />
         </svg>
       </Card>
       <Card variant="chart">
@@ -76,14 +77,11 @@ function App() {
         <svg viewBox="0 0 360 150">
           <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
           <path d={origPath} fill="none" stroke={C.ghost} strokeWidth="1.2" strokeDasharray="4 3" />
-          <path d={reconPath} fill="none" stroke={aliasing ? C.warn : C.acc} strokeWidth="2" filter="url(#glow)" />
+          <path d={reconPath} fill="none" stroke={aliasing ? C.warn : C.acc} strokeWidth="1.5" />
         </svg>
         <Legend items={[{ color: C.fn, label: "原信号" }, { color: C.fill, label: "样本" }, { color: aliasing ? C.warn : C.acc, label: "重建" }]} />
       </Card>
-      <Card>
-        <SliderControl label="信号频率 f" display={f.toFixed(1) + " Hz"} color={C.fn} min={1} max={12} step={0.5} value={f} onChange={setF} />
-        <SliderControl label="采样率 fs" display={fs.toFixed(1) + " Hz"} color={C.fill} min={2} max={30} step={0.5} value={fs} onChange={setFs} last hint={"奈奎斯特阈值 = 2f = " + (2 * f).toFixed(1) + " Hz"} />
-      </Card>
+      </StickyChart>
       <Card>
         <div style={{ fontSize: 13, color: C.sub }}>{aliasing
           ? <span><b style={{ color: C.warn }}>发生混叠。</b> fs &lt; 2f，{f}Hz 被误判为约 {fAlias.toFixed(1)}Hz 的低频，重建失真。</span>
@@ -96,6 +94,15 @@ function App() {
           { title: "重建", en: "sinc 插值", desc: "满足判据时，样本可无失真还原信号。", color: C.fn },
         ]} />
       </Card>
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="信号频率 f" display={f.toFixed(1) + " Hz"} color={C.fn} min={1} max={12} step={0.5} value={f} onChange={setF} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="采样率 fs" display={fs.toFixed(1) + " Hz"} color={C.fill} min={2} max={30} step={0.5} value={fs} onChange={setFs} last hint={"奈奎斯特阈值 = 2f = " + (2 * f).toFixed(1) + " Hz"} />
+        </div>
+      </BottomDock>
     </div>
   );
 }

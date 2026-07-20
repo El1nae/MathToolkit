@@ -3,29 +3,29 @@
 var el = React.createElement;
 
 var C = {
-  bg: "#0C0C0E",
-  ink: "rgba(255,255,255,0.98)",
-  sub: "rgba(255,255,255,0.70)",
-  dim: "rgba(255,255,255,0.44)",
+  bg: "#101116",
+  ink: "rgba(255,255,255,0.92)",
+  sub: "rgba(255,255,255,0.62)",
+  dim: "rgba(255,255,255,0.40)",
   ghost: "rgba(255,255,255,0.24)",
   grid: "rgba(255,255,255,0.08)",
-  axis: "rgba(255,255,255,0.14)",
+  axis: "rgba(255,255,255,0.55)",
 
-  fn: "rgba(70,125,255,1)",
-  fill: "rgba(168,88,255,0.95)",
-  fillLight: "rgba(168,88,255,0.16)",
-  acc: "#00C7B2",
-  accDim: "#5FE6D6",
-  warn: "#FF453A",
-  warnDim: "#FF8A80",
-  rose: "rgba(255,112,168,0.95)",
+  fn: "#7C9CC4",          // 主曲线 — 钢蓝（图纸唯一强调色）
+  fill: "#B79B77",        // 次要 — 赭黄（制图墨）
+  fillLight: "rgba(183,155,119,0.14)",
+  acc: "#7FB0A6",         // 强调 — 灰绿
+  accDim: "#A6C8C0",
+  warn: "#E0655C",
+  warnDim: "#E8938C",
+  rose: "#C98B9E",
 };
 
 var STEP_COLORS = [
-  "rgba(70,125,255,0.95)",
-  "rgba(70,125,255,0.70)",
-  "rgba(168,88,255,0.90)",
-  "rgba(0,199,178,0.95)",
+  "#7C9CC4",
+  "rgba(124,156,196,0.65)",
+  "#B79B77",
+  "#7FB0A6",
 ];
 
 function Card(props) {
@@ -41,8 +41,21 @@ function BackLink(props) {
 function PageHeader(props) {
   return el("div", null,
     el(BackLink, { href: props.backHref }),
+    (props.tag || props.index) ? el("div", { className: "bp-head" },
+      el("div", { className: "bp-tag" }, props.tag || ""),
+      props.index ? el("div", { className: "bp-index" }, props.index) : null
+    ) : null,
     el("h1", { className: "page-title" }, props.title),
     props.subtitle ? el("p", { className: "page-subtitle" }, props.subtitle) : null
+  );
+}
+
+/* 底部方括号关键句 */
+function KeyLine(props) {
+  return el("div", { className: "bp-bracket", style: props.style },
+    el("span", { className: "br" }, "["),
+    props.children,
+    el("span", { className: "br" }, "]")
   );
 }
 
@@ -56,9 +69,7 @@ function Intuition(props) {
 function Legend(props) {
   return el("div", { className: "legend" },
     (props.items || []).map(function(it, i) {
-      var swatchStyle = it.dashed
-        ? { borderTopColor: it.color, background: "transparent" }
-        : { background: it.color };
+      var swatchStyle = { color: it.color, borderTopStyle: it.dashed ? "dashed" : "solid" };
       return el("div", { key: i, className: "legend-item" },
         el("span", { className: "legend-swatch" + (it.dashed ? " dashed" : ""), style: swatchStyle }),
         el("span", null, it.label)
@@ -173,14 +184,24 @@ function GridLines(props) {
   var yTicks = props.yTicks || computeTicks(ctx.yMin, ctx.yMax);
   var elems = [];
   xTicks.forEach(function(gx, i) {
-    elems.push(el("line", { key: "gx" + i, x1: ctx.sx(gx), y1: ctx.pad.t, x2: ctx.sx(gx), y2: ctx.H - ctx.pad.b, stroke: "rgba(255,255,255,0.05)", strokeWidth: 0.5 }));
-    elems.push(el("text", { key: "tx" + i, x: ctx.sx(gx), y: ctx.H - ctx.pad.b + 14, fontSize: 9, fill: "rgba(255,255,255,0.22)", textAnchor: "middle", fontFamily: "'Source Code Pro', monospace" }, gx));
+    elems.push(el("line", { key: "gx" + i, x1: ctx.sx(gx), y1: ctx.pad.t, x2: ctx.sx(gx), y2: ctx.H - ctx.pad.b, stroke: "rgba(255,255,255,0.08)", strokeWidth: 0.5 }));
+    elems.push(el("text", { key: "tx" + i, x: ctx.sx(gx), y: ctx.H - ctx.pad.b + 13, fontSize: 9, fill: "rgba(255,255,255,0.40)", textAnchor: "middle", fontFamily: "'Source Code Pro', monospace" }, gx));
   });
   yTicks.forEach(function(gy, i) {
-    elems.push(el("line", { key: "gy" + i, x1: ctx.pad.l, y1: ctx.sy(gy), x2: ctx.W - ctx.pad.r, y2: ctx.sy(gy), stroke: "rgba(255,255,255,0.05)", strokeWidth: 0.5 }));
-    elems.push(el("text", { key: "ty" + i, x: ctx.pad.l - 6, y: ctx.sy(gy) + 3, fontSize: 9, fill: "rgba(255,255,255,0.22)", textAnchor: "end", fontFamily: "'Source Code Pro', monospace" }, gy));
+    elems.push(el("line", { key: "gy" + i, x1: ctx.pad.l, y1: ctx.sy(gy), x2: ctx.W - ctx.pad.r, y2: ctx.sy(gy), stroke: "rgba(255,255,255,0.08)", strokeWidth: 0.5 }));
+    elems.push(el("text", { key: "ty" + i, x: ctx.pad.l - 6, y: ctx.sy(gy) + 3, fontSize: 9, fill: "rgba(255,255,255,0.40)", textAnchor: "end", fontFamily: "'Source Code Pro', monospace" }, gy));
   });
   return el("g", null, elems);
+}
+
+/* 十字准星（registration mark）：某一屏幕坐标点处画短线段十字 */
+function Crosshair(props) {
+  var s = props.size || 7;
+  var color = props.color || "rgba(124,156,196,0.6)";
+  return el("g", { stroke: color, strokeWidth: 0.5 },
+    el("line", { x1: props.px - s, y1: props.py, x2: props.px + s, y2: props.py }),
+    el("line", { x1: props.px, y1: props.py - s, x2: props.px, y2: props.py + s })
+  );
 }
 
 function Axes(props) {
@@ -230,4 +251,122 @@ function Arrow(props) {
     el("line", { x1: x1, y1: y1, x2: x2, y2: y2, stroke: props.color, strokeWidth: props.w || 2.5, strokeLinecap: "round" }),
     el("polygon", { points: x2 + "," + y2 + " " + p1[0] + "," + p1[1] + " " + p2[0] + "," + p2[1], fill: props.color })
   );
+}
+
+/* ============================================================
+   交互浮层组件（全站统一）
+   - StickyChart : 图表吸顶容器
+   - SidePanel   : 左侧拉出的"输入 + 说明书"浮窗（自管开合）
+   - SyntaxHelp  : 公式语法说明表（默认放进 SidePanel）
+   - BottomDock  : 底部悬浮滑块坞（自管开合 + 向上拖拽增高）
+   ============================================================ */
+
+/* 默认公式语法说明（一元 x） */
+var SYNTAX_X = [
+  { code: "x^2", desc: "幂运算" },
+  { code: "2x", desc: "省略乘号 = 2*x" },
+  { code: "sin cos tan", desc: "三角函数" },
+  { code: "exp(x)", desc: "指数 eˣ" },
+  { code: "log(x)", desc: "自然对数 ln" },
+  { code: "sqrt(x)", desc: "平方根" },
+  { code: "abs(x)", desc: "绝对值" },
+  { code: "pi", desc: "圆周率 π" },
+];
+
+/* 图表吸顶容器：把 <Card variant="chart"> 包进来即可 */
+function StickyChart(props) {
+  return el("div", { className: "sticky-chart", style: props.style }, props.children);
+}
+
+/* 公式语法说明表 */
+function SyntaxHelp(props) {
+  var rows = props.rows || SYNTAX_X;
+  return el("div", { className: "panel-block", style: { marginBottom: 0 } },
+    el("h4", null, props.title || "语法说明书"),
+    rows.map(function(s, i) {
+      return el("div", { key: i, className: "syntax-row" },
+        el("code", null, s.code),
+        el("span", null, s.desc)
+      );
+    })
+  );
+}
+
+/* 左侧拉出面板：自管开合。把输入框/预设/范围等放进 children，
+   末尾默认附一份语法说明书（可用 syntax={false} 关闭，或 syntax=[...] 自定义）。 */
+function SidePanel(props) {
+  var st = React.useState(false), open = st[0], setOpen = st[1];
+  var syntax = props.syntax;
+  var showSyntax = syntax !== false;
+  return el(React.Fragment, null,
+    el("div", { className: "side-handle" + (open ? " open" : ""), onClick: function() { setOpen(!open); } },
+      el("span", { className: "grip" }, open ? "收起 ‹" : (props.handleLabel || "输入") + " ›")
+    ),
+    el("div", { className: "side-panel" + (open ? " open" : "") },
+      props.children,
+      showSyntax ? el(SyntaxHelp, { rows: Array.isArray(syntax) ? syntax : null }) : null
+    )
+  );
+}
+
+/* 面板内的分区块（带小标题） */
+function PanelBlock(props) {
+  return el("div", { className: "panel-block", style: props.style },
+    props.title ? el("h4", null, props.title) : null,
+    props.children
+  );
+}
+
+/* 底部悬浮滑块坞：自管开合（默认收起）+ 顶部把手向上拖拽增高。
+   把若干 <SliderControl last /> 包进 children。 */
+function BottomDock(props) {
+  var so = React.useState(false), open = so[0], setOpen = so[1];
+  var sh = React.useState(props.height || 132), h = sh[0], setH = sh[1];
+  var drag = React.useRef(null);
+
+  var onGripDown = function(e) {
+    e.preventDefault();
+    var startY = e.touches ? e.touches[0].clientY : e.clientY;
+    drag.current = { startY: startY, startH: h };
+    var move = function(ev) {
+      var y = ev.touches ? ev.touches[0].clientY : ev.clientY;
+      var next = drag.current.startH + (drag.current.startY - y);
+      var max = window.innerHeight * 0.8;
+      setH(Math.max(84, Math.min(max, next)));
+    };
+    var up = function() {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("touchend", up);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    window.addEventListener("touchmove", move, { passive: false });
+    window.addEventListener("touchend", up);
+  };
+
+  return el(React.Fragment, null,
+    el("div", { className: "dock-ball" + (open ? " hidden" : ""), onClick: function() { setOpen(true); } },
+      el("svg", { width: 24, height: 24, viewBox: "0 0 24 24", fill: "none" },
+        el("line", { x1: 4, y1: 8, x2: 20, y2: 8, stroke: "#7C9CC4", strokeWidth: 1.5 }),
+        el("circle", { cx: 9, cy: 8, r: 3, fill: "#101116", stroke: "#7C9CC4", strokeWidth: 1.5 }),
+        el("line", { x1: 4, y1: 16, x2: 20, y2: 16, stroke: "rgba(255,255,255,0.5)", strokeWidth: 1.5 }),
+        el("circle", { cx: 15, cy: 16, r: 3, fill: "#101116", stroke: "rgba(255,255,255,0.5)", strokeWidth: 1.5 })
+      )
+    ),
+    el("div", { className: "dock" + (open ? " open" : ""), style: { "--dock-h": h + "px" } },
+      el("div", { className: "dock-grip", onMouseDown: onGripDown, onTouchStart: onGripDown }),
+      el("div", { className: "dock-bar" },
+        el("span", { className: "dock-title" }, props.title || "参数控制台 · drag to explore"),
+        el("span", { className: "dock-close", onClick: function() { setOpen(false); } }, "×")
+      ),
+      el("div", { className: "dock-tracks" }, props.children)
+    )
+  );
+}
+
+/* 底部预留空间：避免悬浮球盖住页面最后内容 */
+function DockSpacer(props) {
+  return el("div", { style: { height: props.height || 80 } });
 }

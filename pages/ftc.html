@@ -53,6 +53,18 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入">
+        <PanelBlock title="输入被积函数 f(x)">
+          <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
+        </PanelBlock>
+        <PanelBlock title="预设函数">
+          <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
+        </PanelBlock>
+        <PanelBlock title="x 轴范围">
+          <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="微积分基本定理" subtitle="Fundamental Theorem — differentiation undoes integration" />
       <Intuition>
         面积函数 <b style={{ color: C.acc }}>F(x)=∫f</b> 表示曲线下从 a 到 x 累积的面积。
@@ -60,52 +72,41 @@ function App() {
         改变 x，上图面积与下图累积曲线同步变化。
       </Intuition>
 
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>输入被积函数 f(x)</div>
-        <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
-        <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
-        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <div className="chart-label">f(x) — 阴影面积从 {xMin.toFixed(1)} 累积到 x = {cx.toFixed(2)}</div>
+          <svg viewBox="0 0 360 175">
+            <defs dangerouslySetInnerHTML={{ __html: AREA_GRADIENT_SVG + GLOW_FILTER_SVG }} />
+            <GridLines ctx={topCtx} />
+            <Axes ctx={topCtx} />
+            <path d={fillArea} fill="url(#areaFill)" />
+            <path d={curve} fill="none" stroke={C.fn} strokeWidth="1.5" />
+            <DashedMarker ctx={topCtx} x={cx} color={C.acc} label="x" bold />
+            <circle cx={topCtx.sx(cx)} cy={topCtx.sy(Math.max(yMin, Math.min(yMax, fx)))} r="3" fill={C.fn} stroke={C.bg} strokeWidth="1.5" />
+          </svg>
+          <Legend items={[{ color: C.fn, label: "f(x)" }, { color: C.fill, label: "累积面积" }]} />
+        </Card>
 
-      <Card variant="chart">
-        <div className="chart-label">f(x) — 阴影面积从 {xMin.toFixed(1)} 累积到 x = {cx.toFixed(2)}</div>
-        <svg viewBox="0 0 360 175">
-          <defs dangerouslySetInnerHTML={{ __html: AREA_GRADIENT_SVG + GLOW_FILTER_SVG }} />
-          <GridLines ctx={topCtx} />
-          <Axes ctx={topCtx} />
-          <path d={fillArea} fill="url(#areaFill)" />
-          <path d={curve} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
-          <DashedMarker ctx={topCtx} x={cx} color={C.acc} label="x" bold />
-          <circle cx={topCtx.sx(cx)} cy={topCtx.sy(Math.max(yMin, Math.min(yMax, fx)))} r="4" fill={C.fn} stroke={C.bg} strokeWidth="1.5" />
-        </svg>
-        <Legend items={[{ color: C.fn, label: "f(x)" }, { color: C.fill, label: "累积面积" }]} />
-      </Card>
-
-      <Card>
-        <SliderControl label="位置 x" display={cx.toFixed(2)} color={C.acc}
-          min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
-          hint="上图面积等于下图 F(x) 的高度；F 的斜率等于 f(x)" />
-      </Card>
-
-      <Card variant="chart">
-        <div className="chart-label">F(x) = ∫ₐˣ f(t) dt — 累积面积曲线，斜率 = f(x)</div>
-        <svg viewBox="0 0 360 150">
-          <GridLines ctx={aCtx} />
-          <Axes ctx={aCtx} />
-          <path d={accum.gray} fill="none" stroke={C.grid} strokeWidth="2.4" />
-          <path d={accum.green} fill="none" stroke={C.acc} strokeWidth="2.4" strokeLinecap="round" />
-          {/* tangent slope = f(x) */}
-          <line x1={aCtx.sx(cx - 0.6)} y1={aCtx.sy(accum.Fb - fx * 0.6)}
-            x2={aCtx.sx(cx + 0.6)} y2={aCtx.sy(accum.Fb + fx * 0.6)}
-            stroke={C.fn} strokeWidth="2" strokeLinecap="round" />
-          <DashedMarker ctx={aCtx} x={cx} color={C.accDim} />
-          <circle cx={aCtx.sx(cx)} cy={aCtx.sy(accum.Fb)} r="4" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
-        </svg>
-        <Legend items={[
-          { color: C.acc, label: "F(x) 累积" },
-          { color: C.fn, label: "切线斜率 = f(x)" },
-        ]} />
-      </Card>
+        <Card variant="chart">
+          <div className="chart-label">F(x) = ∫ₐˣ f(t) dt — 累积面积曲线，斜率 = f(x)</div>
+          <svg viewBox="0 0 360 150">
+            <GridLines ctx={aCtx} />
+            <Axes ctx={aCtx} />
+            <path d={accum.gray} fill="none" stroke={C.grid} strokeWidth="1.5" />
+            <path d={accum.green} fill="none" stroke={C.acc} strokeWidth="1.5" />
+            {/* tangent slope = f(x) */}
+            <line x1={aCtx.sx(cx - 0.6)} y1={aCtx.sy(accum.Fb - fx * 0.6)}
+              x2={aCtx.sx(cx + 0.6)} y2={aCtx.sy(accum.Fb + fx * 0.6)}
+              stroke={C.fn} strokeWidth="1.5" />
+            <DashedMarker ctx={aCtx} x={cx} color={C.accDim} />
+            <circle cx={aCtx.sx(cx)} cy={aCtx.sy(accum.Fb)} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+          </svg>
+          <Legend items={[
+            { color: C.acc, label: "F(x) 累积" },
+            { color: C.fn, label: "切线斜率 = f(x)" },
+          ]} />
+        </Card>
+      </StickyChart>
 
       <Card>
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
@@ -121,6 +122,16 @@ function App() {
           { title: "互逆", en: "Inverse", desc: "微分与积分互为逆运算", color: C.fill },
         ]} />
       </Card>
+
+      <DockSpacer />
+
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="位置 x" display={cx.toFixed(2)} color={C.acc}
+            min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
+            hint="上图面积等于下图 F(x) 的高度；F 的斜率等于 f(x)" />
+        </div>
+      </BottomDock>
     </div>
   );
 }

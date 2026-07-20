@@ -45,15 +45,18 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="设置" syntax={false}>
+        <PanelBlock title="矩阵 A（2×2）">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {[0, 1, 2, 3].map(i => <input key={i} className="num-input" type="number" step="0.5" value={m[i]} onChange={(e) => setEl(i, e.target.value)} />)}
+          </div>
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="特征值与特征向量" subtitle="Eigenvalues — directions the matrix only stretches" backHref="../index.html" />
       <Intuition>矩阵作用于一般向量时同时改变其方向与长度。沿<b style={{ color: C.acc }}>特征向量</b>方向，作用退化为纯缩放，缩放倍数即<b>特征值 λ</b>，满足 Av = λv。虚线圆为原始向量，实线为变换后结果。</Intuition>
       <ExampleSwitcher examples={PRESETS} onChange={(i) => setM(PRESETS[i].m)} />
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>矩阵 A（2×2）</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {[0, 1, 2, 3].map(i => <input key={i} className="num-input" type="number" step="0.5" value={m[i]} onChange={(e) => setEl(i, e.target.value)} />)}
-        </div>
-      </Card>
+      <StickyChart>
       <Card variant="chart">
         <svg viewBox="0 0 360 340">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
@@ -66,12 +69,13 @@ function App() {
           <polygon points={circle.map(p => ctx.sx(p.x) + "," + ctx.sy(p.y)).join(" ")} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
           <polygon points={circle.map(p => ctx.sx(p.tx) + "," + ctx.sy(p.ty)).join(" ")} fill={C.fillLight} stroke={C.fill} strokeWidth="1.5" />
           {E.real && [E.v1, E.v2].map((v, i) => (
-            <line key={i} x1={ctx.sx(-v[0] * 6)} y1={ctx.sy(-v[1] * 6)} x2={ctx.sx(v[0] * 6)} y2={ctx.sy(v[1] * 6)} stroke={C.acc} strokeWidth="2" filter="url(#glow)" />
+            <line key={i} x1={ctx.sx(-v[0] * 6)} y1={ctx.sy(-v[1] * 6)} x2={ctx.sx(v[0] * 6)} y2={ctx.sy(v[1] * 6)} stroke={C.acc} strokeWidth="1.5" />
           ))}
           {!E.real && <text x="180" y="175" fill={C.warn} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="13">特征值为复数 → 纯旋转，无实特征方向</text>}
         </svg>
         <Legend items={[{ color: C.dim, label: "原始向量 (圆)", dashed: true }, { color: C.fill, label: "变换后" }, { color: C.acc, label: "特征方向" }]} />
       </Card>
+      </StickyChart>
       <Card>
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="λ₁" value={E.real ? E.l1.toFixed(2) : "复数"} color={C.acc} />

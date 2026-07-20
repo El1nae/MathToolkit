@@ -59,26 +59,24 @@ function App() {
       <PageHeader title="相平面" subtitle="Phase plane — trajectories of position vs velocity" backHref="../index.html" />
       <Intuition>将二阶方程视为 <b>(x, x′)</b> 平面上的运动，每个初始状态对应一条<b style={{ color: C.acc }}>轨迹</b>。轨迹的整体形状决定系统类型：无阻尼为闭合曲线（<b>中心</b>），有阻尼为收敛于原点的<b>螺旋</b>，负刚度为发散的<b style={{ color: C.warn }}>鞍点</b>。</Intuition>
       <ExampleSwitcher examples={PRESETS} onChange={(i) => { setZ(PRESETS[i].z); setW(PRESETS[i].w); }} />
-      <Card variant="chart">
-        <div className="chart-label">相平面 (x, x′)</div>
-        <svg viewBox="0 0 360 320">
-          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
-          {grid.map(g => <g key={g}>
-            <line x1={ctx.sx(g)} y1={ctx.sy(-3.4)} x2={ctx.sx(g)} y2={ctx.sy(3.4)} stroke={C.grid} strokeWidth="0.5" />
-            <line x1={ctx.sx(-3.7)} y1={ctx.sy(g)} x2={ctx.sx(3.7)} y2={ctx.sy(g)} stroke={C.grid} strokeWidth="0.5" />
-          </g>)}
-          <line x1={ctx.sx(-3.7)} y1={ctx.sy(0)} x2={ctx.sx(3.7)} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
-          <line x1={ctx.sx(0)} y1={ctx.sy(-3.4)} x2={ctx.sx(0)} y2={ctx.sy(3.4)} stroke={C.axis} strokeWidth="1" />
-          {trajs.map((t, i) => <path key={i} d={toPath(t)} fill="none" stroke={C.acc} strokeWidth="1.6" opacity="0.85" />)}
-          {seeds.map((s, i) => <circle key={i} cx={ctx.sx(s[0])} cy={ctx.sy(s[1])} r="2.5" fill={C.fill} />)}
-          <circle cx={ctx.sx(0)} cy={ctx.sy(0)} r="4" fill={C.warn} />
-        </svg>
-        <Legend items={[{ color: C.acc, label: "轨迹" }, { color: C.fill, label: "起点" }, { color: C.warn, label: "平衡点" }]} />
-      </Card>
-      <Card>
-        <SliderControl label="阻尼比 ζ" display={z.toFixed(2)} color={C.fn} min={-0.3} max={2} step={0.05} value={z} onChange={setZ} />
-        <SliderControl label="频率参数 ω" display={w.toFixed(2)} color={C.fill} min={-1.5} max={2} step={0.05} value={w} onChange={setW} last hint="ω 取负值对应负刚度，系统呈鞍点" />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <div className="chart-label">相平面 (x, x′)</div>
+          <svg viewBox="0 0 360 320">
+            <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+            {grid.map(g => <g key={g}>
+              <line x1={ctx.sx(g)} y1={ctx.sy(-3.4)} x2={ctx.sx(g)} y2={ctx.sy(3.4)} stroke={C.grid} strokeWidth="0.5" />
+              <line x1={ctx.sx(-3.7)} y1={ctx.sy(g)} x2={ctx.sx(3.7)} y2={ctx.sy(g)} stroke={C.grid} strokeWidth="0.5" />
+            </g>)}
+            <line x1={ctx.sx(-3.7)} y1={ctx.sy(0)} x2={ctx.sx(3.7)} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+            <line x1={ctx.sx(0)} y1={ctx.sy(-3.4)} x2={ctx.sx(0)} y2={ctx.sy(3.4)} stroke={C.axis} strokeWidth="1" />
+            {trajs.map((t, i) => <path key={i} d={toPath(t)} fill="none" stroke={C.acc} strokeWidth="1.6" opacity="0.85" />)}
+            {seeds.map((s, i) => <circle key={i} cx={ctx.sx(s[0])} cy={ctx.sy(s[1])} r="2.5" fill={C.fill} />)}
+            <circle cx={ctx.sx(0)} cy={ctx.sy(0)} r="3" fill={C.warn} />
+          </svg>
+          <Legend items={[{ color: C.acc, label: "轨迹" }, { color: C.fill, label: "起点" }, { color: C.warn, label: "平衡点" }]} />
+        </Card>
+      </StickyChart>
       <Card>
         <div style={{ fontSize: 13, color: C.sub }}>当前类型：<b style={{ color: w < 0 ? C.warn : C.acc }}>{kind}</b>。平衡点的稳定性完全由 ζ 与 ω 决定，无需求出显式解。</div>
       </Card>
@@ -89,6 +87,17 @@ function App() {
           { title: "辨类型", en: "center/spiral/saddle", desc: "由轨迹形状判定平衡点的稳定性。", color: C.warn },
         ]} />
       </Card>
+
+      <DockSpacer />
+
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="阻尼比 ζ" display={z.toFixed(2)} color={C.fn} min={-0.3} max={2} step={0.05} value={z} onChange={setZ} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="频率参数 ω" display={w.toFixed(2)} color={C.fill} min={-1.5} max={2} step={0.05} value={w} onChange={setW} last hint="ω 取负值对应负刚度，系统呈鞍点" />
+        </div>
+      </BottomDock>
     </div>
   );
 }

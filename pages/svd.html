@@ -46,15 +46,18 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="设置" syntax={false}>
+        <PanelBlock title="矩阵 A（2×2）">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {[0, 1, 2, 3].mapplyMat(i => <input key={i} className="num-input" type="number" step="0.5" value={m[i]} onChange={(e) => setEl(i, e.target.value)} />)}
+          </div>
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="SVD 奇异值分解" subtitle="SVD — any matrix is rotate · scale · rotate" backHref="../index.html" />
       <Intuition>任意矩阵可分解为三步：<b style={{ color: C.fn }}>旋转 Vᵀ</b> → <b style={{ color: C.fill }}>沿轴缩放 Σ</b> → <b style={{ color: C.acc }}>旋转 U</b>。单位圆先旋转，再被缩放为椭圆，最后旋转至最终朝向。椭圆两半轴长度即<b>奇异值 σ₁, σ₂</b>。</Intuition>
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>矩阵 A（2×2）</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {[0, 1, 2, 3].mapplyMat(i => <input key={i} className="num-input" type="number" step="0.5" value={m[i]} onChange={(e) => setEl(i, e.target.value)} />)}
-        </div>
-      </Card>
       <ExampleSwitcher examples={STAGES} active={step} onChange={setStep} />
+      <StickyChart>
       <Card variant="chart">
         <svg viewBox="0 0 360 340">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
@@ -64,12 +67,13 @@ function App() {
           </g>)}
           <line x1={ctx.sx(-6)} y1={ctx.sy(0)} x2={ctx.sx(6)} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
           <line x1={ctx.sx(0)} y1={ctx.sy(-6)} x2={ctx.sx(0)} y2={ctx.sy(6)} stroke={C.axis} strokeWidth="1" />
-          <polygon points={pts.mapplyMat(p => ctx.sx(p[0]) + "," + ctx.sy(p[1])).join(" ")} fill={C.fillLight} stroke={step === 3 ? C.acc : C.fill} strokeWidth="2" filter="url(#glow)" />
-          <line x1={ctx.sx(0)} y1={ctx.sy(0)} x2={ctx.sx(axes[0][0])} y2={ctx.sy(axes[0][1])} stroke={C.fn} strokeWidth="2" />
-          <line x1={ctx.sx(0)} y1={ctx.sy(0)} x2={ctx.sx(axes[1][0])} y2={ctx.sy(axes[1][1])} stroke={C.acc} strokeWidth="2" />
+          <polygon points={pts.mapplyMat(p => ctx.sx(p[0]) + "," + ctx.sy(p[1])).join(" ")} fill={C.fillLight} stroke={step === 3 ? C.acc : C.fill} strokeWidth="1.5" />
+          <line x1={ctx.sx(0)} y1={ctx.sy(0)} x2={ctx.sx(axes[0][0])} y2={ctx.sy(axes[0][1])} stroke={C.fn} strokeWidth="1.5" />
+          <line x1={ctx.sx(0)} y1={ctx.sy(0)} x2={ctx.sx(axes[1][0])} y2={ctx.sy(axes[1][1])} stroke={C.acc} strokeWidth="1.5" />
         </svg>
         <Legend items={[{ color: C.fill, label: STAGES[step] }, { color: C.fn, label: "轴 1" }, { color: C.acc, label: "轴 2" }]} />
       </Card>
+      </StickyChart>
       <Card>
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="σ₁ (最大伸缩)" value={S.s1.toFixed(2)} color={C.fill} />

@@ -59,6 +59,15 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入" syntax={false}>
+        <PanelBlock title="内层 g(x)">
+          <PresetBar presets={INNERS} onSelect={(p) => setGStr(p.expr)} />
+        </PanelBlock>
+        <PanelBlock title="外层 f(u)">
+          <PresetBar presets={OUTERS} onSelect={(p) => setFStr(p.expr)} />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="链式法则" subtitle="Chain rule — the derivative of a composition" />
       <Intuition>
         复合函数 <b style={{ color: C.fn }}>f(g(x))</b> 的变化率等于两层变化率之<b>积</b>：
@@ -66,44 +75,37 @@ function App() {
         内层变化经外层放大，两级变化率逐级传递。
       </Intuition>
 
-      <Card>
-        <div className="section-label" style={{ marginBottom: 6 }}>内层 g(x)</div>
-        <PresetBar presets={INNERS} onSelect={(p) => setGStr(p.expr)} />
-        <div className="section-label" style={{ marginBottom: 6, marginTop: 12 }}>外层 f(u)</div>
-        <PresetBar presets={OUTERS} onSelect={(p) => setFStr(p.expr)} />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <div className="chart-label">内层 g(x) = {gStr}，斜率 g′ = {gp.toFixed(3)}</div>
+          <svg viewBox="0 0 360 150">
+            <GridLines ctx={gCtx} />
+            <Axes ctx={gCtx} />
+            <path d={gPath} fill="none" stroke={C.fill} strokeWidth="1.5" />
+            <DashedMarker ctx={gCtx} x={cx} color={C.fill} label="x" bold />
+            <circle cx={gCtx.sx(cx)} cy={gCtx.sy(Math.max(gCtx.yMin, Math.min(gCtx.yMax, u)))} r="3" fill={C.fill} stroke={C.bg} strokeWidth="1.5" />
+          </svg>
+        </Card>
 
-      <Card variant="chart">
-        <div className="chart-label">内层 g(x) = {gStr}，斜率 g′ = {gp.toFixed(3)}</div>
-        <svg viewBox="0 0 360 150">
-          <GridLines ctx={gCtx} />
-          <Axes ctx={gCtx} />
-          <path d={gPath} fill="none" stroke={C.fill} strokeWidth="2.2" strokeLinecap="round" />
-          <DashedMarker ctx={gCtx} x={cx} color={C.fill} label="x" bold />
-          <circle cx={gCtx.sx(cx)} cy={gCtx.sy(Math.max(gCtx.yMin, Math.min(gCtx.yMax, u)))} r="4" fill={C.fill} stroke={C.bg} strokeWidth="1.5" />
-        </svg>
-      </Card>
-
-      <Card variant="chart">
-        <div className="chart-label">复合 f(g(x)) = {fStr.replace("u", "(" + gStr + ")")}，斜率 = {total.toFixed(3)}</div>
-        <svg viewBox="0 0 360 150">
-          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
-          <GridLines ctx={cCtx} />
-          <Axes ctx={cCtx} />
-          <path d={cPath} fill="none" stroke={C.fn} strokeWidth="2.2" filter="url(#glow)" strokeLinecap="round" />
-          <line x1={cCtx.sx(cx - 0.9)} y1={cCtx.sy(comp(cx) - total * 0.9)}
-            x2={cCtx.sx(cx + 0.9)} y2={cCtx.sy(comp(cx) + total * 0.9)}
-            stroke={C.acc} strokeWidth="2" strokeLinecap="round" />
-          <DashedMarker ctx={cCtx} x={cx} color={C.acc} label="x" bold />
-          <circle cx={cCtx.sx(cx)} cy={cCtx.sy(Math.max(cCtx.yMin, Math.min(cCtx.yMax, comp(cx))))} r="4" fill={C.fn} stroke={C.bg} strokeWidth="1.5" />
-        </svg>
-        <Legend items={[{ color: C.fn, label: "f(g(x))" }, { color: C.acc, label: "切线斜率" }]} />
-      </Card>
+        <Card variant="chart">
+          <div className="chart-label">复合 f(g(x)) = {fStr.replace("u", "(" + gStr + ")")}，斜率 = {total.toFixed(3)}</div>
+          <svg viewBox="0 0 360 150">
+            <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+            <GridLines ctx={cCtx} />
+            <Axes ctx={cCtx} />
+            <path d={cPath} fill="none" stroke={C.fn} strokeWidth="1.5" />
+            <line x1={cCtx.sx(cx - 0.9)} y1={cCtx.sy(comp(cx) - total * 0.9)}
+              x2={cCtx.sx(cx + 0.9)} y2={cCtx.sy(comp(cx) + total * 0.9)}
+              stroke={C.acc} strokeWidth="1.5" />
+            <DashedMarker ctx={cCtx} x={cx} color={C.acc} label="x" bold />
+            <circle cx={cCtx.sx(cx)} cy={cCtx.sy(Math.max(cCtx.yMin, Math.min(cCtx.yMax, comp(cx))))} r="3" fill={C.fn} stroke={C.bg} strokeWidth="1.5" />
+          </svg>
+          <Legend items={[{ color: C.fn, label: "f(g(x))" }, { color: C.acc, label: "切线斜率" }]} />
+        </Card>
+      </StickyChart>
 
       <Card>
-        <SliderControl label="位置 x" display={cx.toFixed(2)} color={C.acc}
-          min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last />
-        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr", marginTop: 12 }}>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
           <StatTile label="g′(x)" value={gp.toFixed(2)} color={C.fill} />
           <StatTile label="f′(g(x))" value={fp.toFixed(2)} color={C.acc} />
           <StatTile label="乘积" value={total.toFixed(2)} color={C.fn} />
@@ -117,6 +119,15 @@ function App() {
           { title: "取乘积", en: "Multiply", desc: "两级变化率之积即复合函数导数", color: C.fn },
         ]} />
       </Card>
+
+      <DockSpacer />
+
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="位置 x" display={cx.toFixed(2)} color={C.acc}
+            min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

@@ -59,6 +59,21 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入" syntax={[
+        { code: "cos(t)", desc: "三角函数" },
+        { code: "t^2", desc: "幂运算" },
+        { code: "2t", desc: "省略乘号 = 2*t" },
+        { code: "exp(t)", desc: "指数 eᵗ" },
+        { code: "变量用 t", desc: "参数 / 时间" },
+      ]}>
+        <PanelBlock title="x(t) =">
+          <FormulaInput value={xExpr} onChange={setXExpr} placeholder="例如 cos(t)" />
+        </PanelBlock>
+        <PanelBlock title="y(t) =">
+          <FormulaInput value={yExpr} onChange={setYExpr} placeholder="例如 sin(t)" />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="参数曲线" subtitle="Parametric curves — a point moving over time t" />
       <Intuition>
         曲线由 <b style={{ color: C.fn }}>x(t)</b> 与 <b style={{ color: C.acc }}>y(t)</b>
@@ -66,39 +81,32 @@ function App() {
         对应点在平面上扫出的<b style={{ color: C.fill }}>轨迹</b>即为参数曲线。增大 t，观察曲线逐段生成。
       </Intuition>
 
-      <Card>
-        <ExampleSwitcher examples={CURVES.map((c) => ({ name: c.name }))}
-          active={CURVES.findIndex((c) => c.xExpr === xExpr)} onChange={(i) => applyCurve(CURVES[i])} />
-        <div className="section-label" style={{ marginBottom: 6 }}>x(t) =</div>
-        <FormulaInput value={xExpr} onChange={setXExpr} placeholder="例如 cos(t)" />
-        <div className="section-label" style={{ marginBottom: 6, marginTop: 10 }}>y(t) =</div>
-        <FormulaInput value={yExpr} onChange={setYExpr} placeholder="例如 sin(t)" />
-      </Card>
+      <ExampleSwitcher examples={CURVES.map((c) => ({ name: c.name }))}
+        active={CURVES.findIndex((c) => c.xExpr === xExpr)} onChange={(i) => applyCurve(CURVES[i])} />
 
-      <Card variant="chart">
-        <div className="chart-label">t = {ct.toFixed(2)} · 点位置 ({px.toFixed(2)}, {py.toFixed(2)})</div>
-        <svg viewBox="0 0 360 300">
-          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
-          <line x1="0" y1={ctx.sy(0)} x2="360" y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
-          <line x1={ctx.sx(0)} y1="0" x2={ctx.sx(0)} y2="300" stroke={C.axis} strokeWidth="1" />
-          <path d={fullPath} fill="none" stroke={C.ghost} strokeWidth="1.2" strokeDasharray="3 4" />
-          <path d={tracePath} fill="none" stroke={C.fill} strokeWidth="2.6" filter="url(#glow)" strokeLinecap="round" />
-          {isFinite(px) && isFinite(py) && (
-            <circle cx={ctx.sx(px)} cy={ctx.sy(py)} r="5.5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
-          )}
-        </svg>
-        <Legend items={[
-          { color: C.ghost, label: "完整轨迹", dashed: true },
-          { color: C.fill, label: "已生成 (至 t)" },
-          { color: C.acc, label: "当前点" },
-        ]} />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <div className="chart-label">t = {ct.toFixed(2)} · 点位置 ({px.toFixed(2)}, {py.toFixed(2)})</div>
+          <svg viewBox="0 0 360 300">
+            <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+            <line x1="0" y1={ctx.sy(0)} x2="360" y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+            <line x1={ctx.sx(0)} y1="0" x2={ctx.sx(0)} y2="300" stroke={C.axis} strokeWidth="1" />
+            <path d={fullPath} fill="none" stroke={C.ghost} strokeWidth="1" strokeDasharray="3 4" />
+            <path d={tracePath} fill="none" stroke={C.fill} strokeWidth="1.5" />
+            {isFinite(px) && isFinite(py) && (
+              <circle cx={ctx.sx(px)} cy={ctx.sy(py)} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+            )}
+          </svg>
+          <Legend items={[
+            { color: C.ghost, label: "完整轨迹", dashed: true },
+            { color: C.fill, label: "已生成 (至 t)" },
+            { color: C.acc, label: "当前点" },
+          ]} />
+        </Card>
+      </StickyChart>
 
       <Card>
-        <SliderControl label="参数 t" display={ct.toFixed(2)} color={C.acc}
-          min={0} max={tMax} step={0.01} value={ct} onChange={setT} last
-          hint="增大 t，观察当前点沿轨迹推进" />
-        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="x(t)" value={px.toFixed(3)} color={C.fn} />
           <StatTile label="y(t)" value={py.toFixed(3)} color={C.acc} />
         </div>
@@ -111,6 +119,16 @@ function App() {
           { title: "取轨迹", en: "Trace", desc: "点经过的路径即为曲线", color: C.fill },
         ]} />
       </Card>
+
+      <DockSpacer />
+
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="参数 t" display={ct.toFixed(2)} color={C.acc}
+            min={0} max={tMax} step={0.01} value={ct} onChange={setT} last
+            hint="增大 t，观察当前点沿轨迹推进" />
+        </div>
+      </BottomDock>
     </div>
   );
 }

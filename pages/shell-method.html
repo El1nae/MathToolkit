@@ -50,6 +50,18 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入">
+        <PanelBlock title="高度函数 f(x)">
+          <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
+        </PanelBlock>
+        <PanelBlock title="预设函数">
+          <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
+        </PanelBlock>
+        <PanelBlock title="x 轴范围">
+          <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="柱壳法" subtitle="Shell method — nested cylindrical shells" />
       <Intuition>
         区域绕 y 轴旋转时，将其剖分为若干<b style={{ color: C.acc }}>竖条</b>。
@@ -57,30 +69,24 @@ function App() {
         壳展开为矩形，面积 2πx·f(x)，沿 x 积分得体积 2π∫x·f(x)dx。
       </Intuition>
 
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>高度函数 f(x)</div>
-        <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
-        <PresetBar presets={PRESETS.slice(0, 8)} onSelect={applyPreset} />
-        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
-      </Card>
-
+      <StickyChart>
       <Card variant="chart">
         <div className="chart-label">半径 x = {cx.toFixed(2)}，高 f(x) = {height.toFixed(3)} · 绕 y 轴</div>
         <svg viewBox="0 0 360 220">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
           <GridLines ctx={ctx} />
           <Axes ctx={ctx} />
-          <line x1={ctx.sx(0)} y1={ctx.pad.t} x2={ctx.sx(0)} y2={ctx.H - ctx.pad.b} stroke={C.acc} strokeWidth="1.4" strokeDasharray="4 4" opacity="0.6" />
+          <line x1={ctx.sx(0)} y1={ctx.pad.t} x2={ctx.sx(0)} y2={ctx.H - ctx.pad.b} stroke={C.acc} strokeWidth="1" strokeDasharray="4 4" opacity="0.6" />
           <path d={buildFillPath(f, ctx, xMin, xMax)} fill={C.fn} opacity="0.08" />
           {/* shell strip on positive side */}
           <rect x={sxPos - 4} y={Math.min(topY, baseY)} width="8" height={Math.abs(baseY - topY)}
-            fill={C.fill} fillOpacity="0.5" stroke={C.fill} strokeWidth="1.4" />
+            fill={C.fill} fillOpacity="0.5" stroke={C.fill} strokeWidth="1" />
           {/* mirror strip to suggest cylindrical shell */}
           <rect x={sxMir - 4} y={Math.min(topY, baseY)} width="8" height={Math.abs(baseY - topY)}
             fill={C.fill} fillOpacity="0.18" stroke={C.fill} strokeWidth="1" strokeDasharray="3 3" />
           <ellipse cx={ctx.sx(0)} cy={baseY} rx={Math.abs(sxPos - ctx.sx(0))} ry="6"
-            fill="none" stroke={C.acc} strokeWidth="1.4" opacity="0.7" />
-          <path d={curve} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
+            fill="none" stroke={C.acc} strokeWidth="1" opacity="0.7" />
+          <path d={curve} fill="none" stroke={C.fn} strokeWidth="1.5" />
           <DashedMarker ctx={ctx} x={cx} color={C.fill} label="x" bold />
         </svg>
         <Legend items={[
@@ -89,12 +95,10 @@ function App() {
           { color: C.acc, label: "旋转轴 y" },
         ]} />
       </Card>
+      </StickyChart>
 
       <Card>
-        <SliderControl label="壳半径 x" display={cx.toFixed(2)} color={C.fill}
-          min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
-          hint="增大 x，圆柱壳由内向外逐层累计" />
-        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="壳面积 2πx·f(x)" value={(2 * Math.PI * cx * height).toFixed(3)} color={C.fill} />
           <StatTile label="体积 (至 x)" value={vol.toFixed(3)} color={C.acc} />
         </div>
@@ -107,6 +111,15 @@ function App() {
           { title: "积分", en: "Sum", desc: "体积 = 2π∫x·f(x)dx", color: C.acc },
         ]} />
       </Card>
+
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="壳半径 x" display={cx.toFixed(2)} color={C.fill}
+            min={xMin} max={xMax} step={0.01} value={cx} onChange={setX} last
+            hint="增大 x，圆柱壳由内向外逐层累计" />
+        </div>
+      </BottomDock>
     </div>
   );
 }

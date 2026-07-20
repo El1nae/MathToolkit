@@ -62,26 +62,35 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入" syntax={[
+        { code: "x-y", desc: "含 x, y 的表达式" },
+        { code: "x*y", desc: "乘积" },
+        { code: "sin(x)", desc: "三角函数" },
+        { code: "变量 x, y", desc: "两个自变量" },
+      ]}>
+        <PanelBlock title="dy/dx = f(x, y) =">
+          <input className="formula-input" value={exprStr} spellCheck={false} autoComplete="off" onChange={(e) => setExprStr(e.target.value)} />
+          <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {PRESETS.map(p => <button key={p.label} className="preset-btn" onClick={() => setExprStr(p.expr)}>{p.label}</button>)}
+          </div>
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="方向场" subtitle="Direction field — arrows every solution must follow" backHref="../index.html" />
       <Intuition>微分方程 dy/dx = f(x,y) 在平面每一点规定了一个<b style={{ color: C.dim }}>斜率</b>。将这些短线段布满平面即构成<b>方向场</b>。任意解曲线在每一点均与该点线段相切。<b style={{ color: C.acc }}>点击图中任意点</b>可从该点生成一条解曲线。</Intuition>
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>dy/dx = f(x, y) =</div>
-        <input className="formula-input" value={exprStr} spellCheck={false} autoComplete="off" onChange={(e) => setExprStr(e.target.value)} />
-        <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {PRESETS.map(p => <button key={p.label} className="preset-btn" onClick={() => setExprStr(p.expr)}>{p.label}</button>)}
-        </div>
-      </Card>
-      <Card variant="chart">
-        <svg viewBox="0 0 360 300" ref={svgRef} onClick={onClick} style={{ cursor: "crosshair" }}>
-          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
-          <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
-          <line x1={ctx.sx(0)} y1={ctx.pad.t} x2={ctx.sx(0)} y2={ctx.H - ctx.pad.b} stroke={C.axis} strokeWidth="1" />
-          {segs.map((s, i) => <line key={i} x1={ctx.sx(s.x1)} y1={ctx.sy(s.y1)} x2={ctx.sx(s.x2)} y2={ctx.sy(s.y2)} stroke={C.dim} strokeWidth="1" />)}
-          {curves.map((c, i) => <path key={i} d={toPath(c)} fill="none" stroke={C.acc} strokeWidth="2" filter="url(#glow)" />)}
-          {seeds.map((s, i) => <circle key={i} cx={ctx.sx(s.x)} cy={ctx.sy(s.y)} r="3.5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />)}
-        </svg>
-        <Legend items={[{ color: C.dim, label: "斜率场" }, { color: C.acc, label: "解曲线（点击添加）" }]} />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <svg viewBox="0 0 360 300" ref={svgRef} onClick={onClick} style={{ cursor: "crosshair" }}>
+            <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+            <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+            <line x1={ctx.sx(0)} y1={ctx.pad.t} x2={ctx.sx(0)} y2={ctx.H - ctx.pad.b} stroke={C.axis} strokeWidth="1" />
+            {segs.map((s, i) => <line key={i} x1={ctx.sx(s.x1)} y1={ctx.sy(s.y1)} x2={ctx.sx(s.x2)} y2={ctx.sy(s.y2)} stroke={C.dim} strokeWidth="1" />)}
+            {curves.map((c, i) => <path key={i} d={toPath(c)} fill="none" stroke={C.acc} strokeWidth="1.5" />)}
+            {seeds.map((s, i) => <circle key={i} cx={ctx.sx(s.x)} cy={ctx.sy(s.y)} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />)}
+          </svg>
+          <Legend items={[{ color: C.dim, label: "斜率场" }, { color: C.acc, label: "解曲线（点击添加）" }]} />
+        </Card>
+      </StickyChart>
       <Card>
         <button className="preset-btn" onClick={() => setSeeds([])} style={{ width: "100%", padding: "10px" }}>清空解曲线</button>
       </Card>

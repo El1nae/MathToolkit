@@ -40,6 +40,7 @@ function App() {
     <div>
       <PageHeader title="正交分解" subtitle="Orthogonal decomposition — split v into two axes" backHref="../index.html" />
       <Intuition>任意向量 <b style={{ color: C.fn }}>v</b> 可唯一分解为沿基方向 <b style={{ color: C.fill }}>u</b> 的分量与沿垂直方向 <b style={{ color: C.acc }}>w</b> 的分量之和：<b>v = c₁u + c₂w</b>。此即坐标系旋转的本质——在另一组正交基下表示同一向量。</Intuition>
+      <StickyChart>
       <Card variant="chart">
         <svg viewBox="0 0 360 340">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
@@ -56,11 +57,7 @@ function App() {
         </svg>
         <Legend items={[{ color: C.fn, label: "v" }, { color: C.fill, label: "沿 u 分量" }, { color: C.acc, label: "沿 w 分量" }]} />
       </Card>
-      <Card>
-        <SliderControl label="v.x" display={vx.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={vx} onChange={setVx} />
-        <SliderControl label="v.y" display={vy.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={vy} onChange={setVy} />
-        <SliderControl label="基方向 θ" display={theta.toFixed(0) + "°"} color={C.fill} min={0} max={180} step={1} value={theta} onChange={setTheta} last />
-      </Card>
+      </StickyChart>
       <Card>
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="c₁ (沿 u)" value={cPar.toFixed(2)} color={C.fill} />
@@ -75,6 +72,18 @@ function App() {
           { title: "重组", en: "v = c₁u + c₂w", desc: "两分量向量相加还原 v。", color: C.acc },
         ]} />
       </Card>
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="v.x" display={vx.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={vx} onChange={setVx} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="v.y" display={vy.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={vy} onChange={setVy} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="基方向 θ" display={theta.toFixed(0) + "°"} color={C.fill} min={0} max={180} step={1} value={theta} onChange={setTheta} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

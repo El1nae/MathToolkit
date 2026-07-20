@@ -58,6 +58,18 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入" syntax={[
+        { code: "cos(2t)", desc: "玫瑰线 · 变量用 t" },
+        { code: "1+cos(t)", desc: "心形线" },
+        { code: "t/6", desc: "螺线" },
+        { code: "sin cos tan", desc: "三角函数" },
+        { code: "变量用 t", desc: "代表 θ" },
+      ]}>
+        <PanelBlock title="r(θ) =（变量用 t 代表 θ）">
+          <FormulaInput value={rExpr} onChange={setRExpr} placeholder="例如 cos(2t)" />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="极坐标面积" subtitle="Polar area — sweeping sectors with ½∫r²dθ" />
       <Intuition>
         极坐标下，半径由角度决定，<b style={{ color: C.fn }}>r(θ)</b> 给出各方向的边界。
@@ -65,13 +77,10 @@ function App() {
         对 θ 积分即得由曲线围成的总面积。
       </Intuition>
 
-      <Card>
-        <ExampleSwitcher examples={CURVES.map((c) => ({ name: c.name }))}
-          active={CURVES.findIndex((c) => c.expr === rExpr)} onChange={(i) => { setRExpr(CURVES[i].expr); setTheta(3.14); }} />
-        <div className="section-label" style={{ marginBottom: 6 }}>r(θ) =（变量用 t 代表 θ）</div>
-        <FormulaInput value={rExpr} onChange={setRExpr} placeholder="例如 cos(2t)" />
-      </Card>
+      <ExampleSwitcher examples={CURVES.map((c) => ({ name: c.name }))}
+        active={CURVES.findIndex((c) => c.expr === rExpr)} onChange={(i) => { setRExpr(CURVES[i].expr); setTheta(3.14); }} />
 
+      <StickyChart>
       <Card variant="chart">
         <div className="chart-label">θ = {cth.toFixed(2)} rad · 累计面积 ≈ {area.toFixed(4)}</div>
         <svg viewBox="0 0 360 300">
@@ -82,10 +91,10 @@ function App() {
             <circle key={i} cx={ctx.sx(0)} cy={ctx.sy(0)} r={rr * ctx.unit} fill="none" stroke={C.grid} strokeWidth="0.5" />
           ))}
           <path d={fanPath} fill={C.fill} opacity="0.18" />
-          <path d={fullPath} fill="none" stroke={C.ghost} strokeWidth="1.2" strokeDasharray="3 4" />
-          <path d={fanPath} fill="none" stroke={C.fill} strokeWidth="2" filter="url(#glow)" />
-          <line x1={ctx.sx(0)} y1={ctx.sy(0)} x2={ctx.sx(pEnd.x)} y2={ctx.sy(pEnd.y)} stroke={C.acc} strokeWidth="2" />
-          <circle cx={ctx.sx(pEnd.x)} cy={ctx.sy(pEnd.y)} r="5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+          <path d={fullPath} fill="none" stroke={C.ghost} strokeWidth="1" strokeDasharray="3 4" />
+          <path d={fanPath} fill="none" stroke={C.fill} strokeWidth="1.5" />
+          <line x1={ctx.sx(0)} y1={ctx.sy(0)} x2={ctx.sx(pEnd.x)} y2={ctx.sy(pEnd.y)} stroke={C.acc} strokeWidth="1.5" />
+          <circle cx={ctx.sx(pEnd.x)} cy={ctx.sy(pEnd.y)} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
         </svg>
         <Legend items={[
           { color: C.ghost, label: "完整曲线", dashed: true },
@@ -93,12 +102,10 @@ function App() {
           { color: C.acc, label: "当前角度 θ" },
         ]} />
       </Card>
+      </StickyChart>
 
       <Card>
-        <SliderControl label="角度 θ" display={cth.toFixed(2)} color={C.acc}
-          min={0} max={thMax} step={0.01} value={cth} onChange={setTheta} last
-          hint="增大 θ，扇形微元逐段累加为面积" />
-        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="r(θ)" value={rf(cth).toFixed(3)} color={C.fn} />
           <StatTile label="面积 ½∫r²dθ" value={area.toFixed(4)} color={C.fill} />
         </div>
@@ -111,6 +118,15 @@ function App() {
           { title: "积分", en: "Integrate", desc: "面积 = ½∫r²dθ，累加全部扇形", color: C.fn },
         ]} />
       </Card>
+
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="角度 θ" display={cth.toFixed(2)} color={C.acc}
+            min={0} max={thMax} step={0.01} value={cth} onChange={setTheta} last
+            hint="增大 θ，扇形微元逐段累加为面积" />
+        </div>
+      </BottomDock>
     </div>
   );
 }

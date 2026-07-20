@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>微分 / 导数</title>
+<title>微分</title>
 <link rel="stylesheet" href="../ui/theme.css" />
 <link rel="stylesheet" href="../ui/components.css" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -22,6 +22,9 @@
 <div id="root"></div>
 <script type="text/babel">
 const { useState, useMemo, useRef } = React;
+
+const PLOTBG = "#101116";
+const MONO = "'Source Code Pro', monospace";
 
 function App() {
   const [exprStr, setExprStr] = useState("x^2");
@@ -51,6 +54,9 @@ function App() {
   const secL = { x: cx0 - 0.3, y: y0 + slopeSecant * (-0.3) };
   const secR = { x: x1 + 0.3, y: y0 + slopeSecant * (x1 + 0.3 - cx0) };
 
+  const hasX = ctx.yMin <= 0 && ctx.yMax >= 0;
+  const hasY = ctx.xMin <= 0 && ctx.xMax >= 0;
+
   const applyPreset = (p) => {
     setExprStr(p.expr);
     const [nMin, nMax] = p.xRange;
@@ -60,72 +66,89 @@ function App() {
 
   return (
     <div>
-      <PageHeader title="微分 / 导数" subtitle="Derivative — the slope of the tangent line" />
+      <SidePanel handleLabel="输入">
+        <PanelBlock title="输入函数 f(x) =">
+          <FormulaInput inputRef={inputRef} value={exprStr} onChange={setExprStr}
+            isError={isError} errorMsg={isError ? (check.error || "无法解析该公式") : null} />
+        </PanelBlock>
+        <PanelBlock title="预设函数">
+          <PresetBar onSelect={applyPreset} />
+        </PanelBlock>
+        <PanelBlock title="x 轴范围">
+          <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
+        </PanelBlock>
+      </SidePanel>
+
+      <PageHeader title="微分" tag="Derivative"
+        subtitle="the slope of the tangent line — f′(x₀)" />
 
       <Intuition>
-        <b style={{ color: C.fill }}>割线</b> 连接相距 Δx 的两点，其斜率为平均变化率 Δy/Δx。
-        当 Δx → 0，割线收敛为 <b style={{ color: C.fn }}>切线</b>，其斜率即导数 f′(x₀)。
+        <b style={{ color: C.fn }}>割线</b> 连接相距 Δx 的两点，其斜率为平均变化率 Δy/Δx。
+        当 Δx → 0，割线收敛为 <b style={{ color: C.ink }}>切线</b>，其斜率即导数 f′(x₀)。
       </Intuition>
 
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>输入函数 f(x) =</div>
-        <FormulaInput inputRef={inputRef} value={exprStr} onChange={setExprStr}
-          isError={isError} errorMsg={isError ? (check.error || "无法解析该公式") : null} />
-        <PresetBar onSelect={applyPreset} />
-        <RangeInputs min={xMin} max={xMax} onMinChange={setXMin} onMaxChange={setXMax} />
-      </Card>
-
-      <Card variant="chart">
-        <svg viewBox="0 0 360 220" style={{ width: "100%", display: "block" }}>
-          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
-          <GridLines ctx={ctx} />
-          <Axes ctx={ctx} />
-          <path d={curvePath} fill="none" stroke={C.fn} strokeWidth="2" strokeLinecap="round" filter="url(#glow)" />
-          {dx > 0.02 && (
-            <line x1={ctx.sx(secL.x)} y1={ctx.sy(secL.y)} x2={ctx.sx(secR.x)} y2={ctx.sy(secR.y)}
-              stroke={C.fill} strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round" />
-          )}
-          <line x1={ctx.sx(tL.x)} y1={ctx.sy(tL.y)} x2={ctx.sx(tR.x)} y2={ctx.sy(tR.y)}
-            stroke={C.fn} strokeWidth="2" strokeLinecap="round" />
-          <DashedMarker ctx={ctx} x={cx0} color={C.acc} label="x₀" bold />
-          {dx > 0.02 && (
-            <circle cx={ctx.sx(x1)} cy={ctx.sy(y1)} r="4" fill={C.fill} stroke={C.bg} strokeWidth="1.5" />
-          )}
-          <circle cx={ctx.sx(cx0)} cy={ctx.sy(y0)} r="4.5" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
-        </svg>
-        <Legend items={[
-          { color: C.fn, label: "f(x)" },
-          { color: C.fill, label: "割线 secant", dashed: true },
-          { color: C.fn, label: "切线 tangent" },
-        ]} />
-      </Card>
-
-      <Card>
-        <SliderControl label="x₀ 位置" display={cx0.toFixed(2)} color={C.acc}
-          min={xMin} max={xMax} step={0.01} value={cx0} onChange={setX0} />
-        <SliderControl label="Δx 间距" display={dx.toFixed(2)} color={C.fill}
-          min={0.01} max={2.0} step={0.01} value={dx} onChange={setDx} last
-          hint="减小 Δx，观察割线斜率收敛到切线斜率" />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <svg viewBox="0 0 360 220" style={{ width: "100%", display: "block" }}>
+            <rect x="0" y="0" width="360" height="220" fill={PLOTBG} />
+            <GridLines ctx={ctx} />
+            <Axes ctx={ctx} />
+            {hasX && hasY && <Crosshair px={ctx.sx(0)} py={ctx.sy(0)} color="rgba(255,255,255,0.35)" />}
+            <path d={curvePath} fill="none" stroke={C.ink} strokeWidth="1.5" />
+            {dx > 0.02 && (
+              <line x1={ctx.sx(secL.x)} y1={ctx.sy(secL.y)} x2={ctx.sx(secR.x)} y2={ctx.sy(secR.y)}
+                stroke="rgba(255,255,255,0.38)" strokeWidth="1" strokeDasharray="6 4" />
+            )}
+            <line x1={ctx.sx(tL.x)} y1={ctx.sy(tL.y)} x2={ctx.sx(tR.x)} y2={ctx.sy(tR.y)}
+              stroke={C.fn} strokeWidth="1" />
+            <line x1={ctx.sx(cx0)} y1={ctx.pad.t} x2={ctx.sx(cx0)} y2={ctx.H - ctx.pad.b}
+              stroke="rgba(124,156,196,0.30)" strokeWidth="0.5" strokeDasharray="2 3" />
+            <text x={ctx.sx(cx0)} y={ctx.H - ctx.pad.b + 13} fontSize="9" fill={C.fn}
+              textAnchor="middle" fontFamily={MONO} fontWeight="600">x₀</text>
+            <Crosshair px={ctx.sx(cx0)} py={ctx.sy(y0)} />
+            {dx > 0.02 && (
+              <circle cx={ctx.sx(x1)} cy={ctx.sy(y1)} r="3" fill={PLOTBG} stroke={C.axis} strokeWidth="1" />
+            )}
+            <circle cx={ctx.sx(cx0)} cy={ctx.sy(y0)} r="3" fill={C.fn} />
+          </svg>
+          <div className="legend">
+            <span className="legend-item"><span className="legend-swatch" style={{ color: C.ink }} />f(x)</span>
+            <span className="legend-item"><span className="legend-swatch dashed" style={{ color: "rgba(255,255,255,0.55)" }} />割线 secant</span>
+            <span className="legend-item"><span className="legend-swatch" style={{ color: C.fn }} />切线 tangent</span>
+          </div>
+        </Card>
+      </StickyChart>
 
       <Card>
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
-          <StatTile label="割线斜率 Δy/Δx" value={slopeSecant.toFixed(3)} color={C.fill} />
-          <StatTile label="切线斜率 f′(x₀)" value={slopeTangent.toFixed(3)} color={C.fn} />
+          <StatTile label="secant · Δy/Δx" value={slopeSecant.toFixed(3)} color={C.sub} />
+          <StatTile label="tangent · f′(x₀)" value={slopeTangent.toFixed(3)} color={C.fn} />
         </div>
-        <div style={{ fontSize: 12.5, color: C.sub, marginTop: 10 }}>
-          误差 |Δy/Δx − f′(x₀)| = <b style={{ color: C.ink }}>{err.toFixed(4)}</b>
-          。Δx 越小，误差趋于 0，割线斜率收敛到导数。
-        </div>
+        <KeyLine style={{ marginTop: 12 }}>
+          误差 |Δy/Δx − f′(x₀)| = {err.toFixed(4)}
+        </KeyLine>
       </Card>
 
       <Card>
         <Steps title="导数的构造" items={[
-          { title: "取两点", en: "Pick two points", desc: "在曲线上取 x₀ 与 x₀+Δx", color: C.acc },
+          { title: "取两点", en: "Pick two points", desc: "在曲线上取 x₀ 与 x₀+Δx", color: C.fn },
           { title: "作割线", en: "Draw secant", desc: "两点连线，斜率为 Δy/Δx", color: C.fill },
-          { title: "Δx → 0", en: "", desc: "间距趋于零，割线收敛为切线，斜率即导数", color: C.fn },
+          { title: "Δx → 0", en: "Converge", desc: "间距趋于零，割线收敛为切线，斜率即导数", color: C.ink },
         ]} />
       </Card>
+
+      <DockSpacer />
+
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="x₀ 位置" display={cx0.toFixed(2)} color={C.fn}
+            min={xMin} max={xMax} step={0.01} value={cx0} onChange={setX0} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="Δx 间距" display={dx.toFixed(2)} color={C.ink}
+            min={0.01} max={2.0} step={0.01} value={dx} onChange={setDx} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

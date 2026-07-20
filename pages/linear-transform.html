@@ -42,6 +42,7 @@ function App() {
     <div>
       <PageHeader title="线性变换" subtitle="Linear transformation — the grid warps, lines stay straight" backHref="../index.html" />
       <Intuition>矩阵 A 将平面映射为新的结构：<b style={{ color: C.fn }}>基向量 î, ĵ</b> 映射为矩阵的两列，网格线保持平行且等距。<b style={{ color: C.fill }}>单位方格</b>变换后的面积等于 <b>行列式 det(A)</b>，负值表示朝向翻转。</Intuition>
+      <StickyChart>
       <Card variant="chart">
         <svg viewBox="0 0 360 340">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
@@ -58,12 +59,7 @@ function App() {
         </svg>
         <Legend items={[{ color: C.fn, label: "î → (a,c)" }, { color: C.acc, label: "ĵ → (b,d)" }, { color: C.fill, label: "单位方格" }]} />
       </Card>
-      <Card>
-        <SliderControl label="a" display={a.toFixed(2)} color={C.fn} min={-3} max={3} step={0.05} value={a} onChange={setA} />
-        <SliderControl label="b" display={b.toFixed(2)} color={C.acc} min={-3} max={3} step={0.05} value={b} onChange={setB} />
-        <SliderControl label="c" display={c.toFixed(2)} color={C.fn} min={-3} max={3} step={0.05} value={c} onChange={setC} />
-        <SliderControl label="d" display={d.toFixed(2)} color={C.acc} min={-3} max={3} step={0.05} value={d} onChange={setD} last />
-      </Card>
+      </StickyChart>
       <Card>
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr" }}>
           <StatTile label="行列式 det(A) = ad − bc" value={det.toFixed(3)} color={C.fill} />
@@ -77,6 +73,21 @@ function App() {
           { title: "读行列式", en: "det = 面积比", desc: "单位方格面积的缩放倍数及朝向。", color: C.fill },
         ]} />
       </Card>
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="a" display={a.toFixed(2)} color={C.fn} min={-3} max={3} step={0.05} value={a} onChange={setA} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="b" display={b.toFixed(2)} color={C.acc} min={-3} max={3} step={0.05} value={b} onChange={setB} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="c" display={c.toFixed(2)} color={C.fn} min={-3} max={3} step={0.05} value={c} onChange={setC} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="d" display={d.toFixed(2)} color={C.acc} min={-3} max={3} step={0.05} value={d} onChange={setD} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

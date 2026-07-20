@@ -50,6 +50,7 @@ function App() {
     <div>
       <PageHeader title="z 变换" subtitle="z-transform — poles and zeros shape a digital filter" backHref="../index.html" />
       <Intuition>数字滤波器的频率特性由 z 平面上的<b style={{ color: C.warn }}>极点 ×</b> 与 <b style={{ color: C.fn }}>零点 ○</b> 决定。频率响应等于沿<b style={{ color: C.acc }}>单位圆</b>取值时，各零点距离之积与各极点距离之积的比值：靠近极点则增益升高，靠近零点则增益降低。极点位于单位圆内是系统稳定的充要条件。</Intuition>
+      <StickyChart>
       <Card variant="chart">
         <div className="chart-label">z 平面</div>
         <svg viewBox="0 0 360 300">
@@ -59,12 +60,12 @@ function App() {
           <polygon points={unit.map(p => ctx.sx(p[0]) + "," + ctx.sy(p[1])).join(" ")} fill="none" stroke={C.acc} strokeWidth="1.5" />
           {[pole, [pole[0], -pole[1]]].map((p, i) => (
             <g key={"p" + i}>
-              <line x1={ctx.sx(p[0]) - 6} y1={ctx.sy(p[1]) - 6} x2={ctx.sx(p[0]) + 6} y2={ctx.sy(p[1]) + 6} stroke={C.warn} strokeWidth="2.5" />
-              <line x1={ctx.sx(p[0]) - 6} y1={ctx.sy(p[1]) + 6} x2={ctx.sx(p[0]) + 6} y2={ctx.sy(p[1]) - 6} stroke={C.warn} strokeWidth="2.5" />
+              <line x1={ctx.sx(p[0]) - 6} y1={ctx.sy(p[1]) - 6} x2={ctx.sx(p[0]) + 6} y2={ctx.sy(p[1]) + 6} stroke={C.warn} strokeWidth="1.5" />
+              <line x1={ctx.sx(p[0]) - 6} y1={ctx.sy(p[1]) + 6} x2={ctx.sx(p[0]) + 6} y2={ctx.sy(p[1]) - 6} stroke={C.warn} strokeWidth="1.5" />
             </g>
           ))}
           {[zero, [zero[0], -zero[1]]].map((z, i) => (
-            <circle key={"z" + i} cx={ctx.sx(z[0])} cy={ctx.sy(z[1])} r="6" fill="none" stroke={C.fn} strokeWidth="2.5" />
+            <circle key={"z" + i} cx={ctx.sx(z[0])} cy={ctx.sy(z[1])} r="3" fill="none" stroke={C.fn} strokeWidth="1.5" />
           ))}
         </svg>
         <Legend items={[{ color: C.acc, label: "单位圆" }, { color: C.warn, label: "极点 ×" }, { color: C.fn, label: "零点 ○" }]} />
@@ -73,15 +74,10 @@ function App() {
         <div className="chart-label">频率响应 |H(e^jω)|，ω: 0 → π</div>
         <svg viewBox="0 0 360 150">
           <line x1={rCtx.pad.l} y1={rCtx.sy(0)} x2={rCtx.W - rCtx.pad.r} y2={rCtx.sy(0)} stroke={C.axis} strokeWidth="1" />
-          <path d={rPath} fill="none" stroke={C.fill} strokeWidth="2" filter="url(#glow)" />
+          <path d={rPath} fill="none" stroke={C.fill} strokeWidth="1.5" />
         </svg>
       </Card>
-      <Card>
-        <SliderControl label="极点半径 r" display={pr.toFixed(2)} color={C.warn} min={0} max={0.98} step={0.01} value={pr} onChange={setPr} />
-        <SliderControl label="极点角度 (×π)" display={pa.toFixed(2)} color={C.warn} min={0} max={Math.PI} step={0.02} value={pa} onChange={setPa} />
-        <SliderControl label="零点半径 r" display={zr.toFixed(2)} color={C.fn} min={0} max={1.5} step={0.01} value={zr} onChange={setZr} />
-        <SliderControl label="零点角度 (×π)" display={za.toFixed(2)} color={C.fn} min={0} max={Math.PI} step={0.02} value={za} onChange={setZa} last />
-      </Card>
+      </StickyChart>
       <Card>
         <div style={{ fontSize: 13, color: C.sub }}>极点半径 {pr < 1 ? <b style={{ color: C.acc }}>&lt; 1，滤波器稳定</b> : <b style={{ color: C.warn }}>≥ 1，不稳定</b>}。将极点角度对准某频率会在该频率形成增益峰，零点则形成陷波。</div>
       </Card>
@@ -92,6 +88,21 @@ function App() {
           { title: "读取响应", en: "|H(e^jω)|", desc: "沿单位圆的距离比即频率响应曲线。", color: C.fill },
         ]} />
       </Card>
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="极点半径 r" display={pr.toFixed(2)} color={C.warn} min={0} max={0.98} step={0.01} value={pr} onChange={setPr} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="极点角度 (×π)" display={pa.toFixed(2)} color={C.warn} min={0} max={Math.PI} step={0.02} value={pa} onChange={setPa} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="零点半径 r" display={zr.toFixed(2)} color={C.fn} min={0} max={1.5} step={0.01} value={zr} onChange={setZr} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="零点角度 (×π)" display={za.toFixed(2)} color={C.fn} min={0} max={Math.PI} step={0.02} value={za} onChange={setZa} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

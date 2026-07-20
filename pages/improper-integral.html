@@ -55,6 +55,15 @@ function App() {
 
   return (
     <div>
+      <SidePanel handleLabel="输入">
+        <PanelBlock title="被积函数 f(x)，x ≥ 1">
+          <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
+        </PanelBlock>
+        <PanelBlock title="预设函数">
+          <PresetBar presets={CASES} onSelect={applyPreset} />
+        </PanelBlock>
+      </SidePanel>
+
       <PageHeader title="反常积分" subtitle="Improper integral — does the tail have finite area?" />
       <Intuition>
         当积分上界 <b style={{ color: C.fill }}>b → ∞</b>，无限延伸的尾部所对应的面积
@@ -62,31 +71,24 @@ function App() {
         增大 b，观察阴影面积趋于稳定还是持续增长。
       </Intuition>
 
-      <Card>
-        <div className="section-label" style={{ marginBottom: 8 }}>被积函数 f(x)，x ≥ 1</div>
-        <FormulaInput value={exprStr} onChange={setExprStr} isError={isError} errorMsg={check.error} />
-        <PresetBar presets={CASES} onSelect={applyPreset} />
-      </Card>
-
-      <Card variant="chart">
-        <div className="chart-label">∫₁ᵇ f dx，b = {b.toFixed(1)} · 面积 ≈ {area.toFixed(4)}</div>
-        <svg viewBox="0 0 360 220">
-          <defs dangerouslySetInnerHTML={{ __html: AREA_GRADIENT_SVG + GLOW_FILTER_SVG }} />
-          <GridLines ctx={ctx} />
-          <Axes ctx={ctx} />
-          <path d={fillArea} fill="url(#areaFill)" />
-          <path d={curve} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" strokeLinecap="round" />
-          <DashedMarker ctx={ctx} x={a} color={C.acc} label="1" bold />
-          <DashedMarker ctx={ctx} x={Math.min(b, xMax)} color={C.fill} label="b" bold />
-        </svg>
-        <Legend items={[{ color: C.fn, label: "f(x)" }, { color: C.fill, label: "尾部面积" }]} />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <div className="chart-label">∫₁ᵇ f dx，b = {b.toFixed(1)} · 面积 ≈ {area.toFixed(4)}</div>
+          <svg viewBox="0 0 360 220">
+            <defs dangerouslySetInnerHTML={{ __html: AREA_GRADIENT_SVG + GLOW_FILTER_SVG }} />
+            <GridLines ctx={ctx} />
+            <Axes ctx={ctx} />
+            <path d={fillArea} fill="url(#areaFill)" />
+            <path d={curve} fill="none" stroke={C.fn} strokeWidth="1.5" />
+            <DashedMarker ctx={ctx} x={a} color={C.acc} label="1" bold />
+            <DashedMarker ctx={ctx} x={Math.min(b, xMax)} color={C.fill} label="b" bold />
+          </svg>
+          <Legend items={[{ color: C.fn, label: "f(x)" }, { color: C.fill, label: "尾部面积" }]} />
+        </Card>
+      </StickyChart>
 
       <Card>
-        <SliderControl label="上界 b" display={b.toFixed(1)} color={C.fill}
-          min={2} max={50} step={0.5} value={b} onChange={setB} last
-          hint="增大 b，观察面积是否趋于某一有限值" />
-        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+        <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label={`面积 ∫₁^${b.toFixed(0)}`} value={area.toFixed(4)} color={C.fill} />
           <StatTile label="b→∞ 极限"
             value={converges ? areaBig.toFixed(4) : "∞ 发散"}
@@ -106,6 +108,16 @@ function App() {
           { title: "判敛散", en: "Converge?", desc: "极限有限则收敛，否则发散", color: C.warn },
         ]} />
       </Card>
+
+      <DockSpacer />
+
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="上界 b" display={b.toFixed(1)} color={C.fill}
+            min={2} max={50} step={0.5} value={b} onChange={setB} last
+            hint="增大 b，观察面积是否趋于某一有限值" />
+        </div>
+      </BottomDock>
     </div>
   );
 }

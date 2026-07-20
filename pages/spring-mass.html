@@ -62,33 +62,30 @@ function App() {
     <div>
       <PageHeader title="弹簧振子" subtitle="Spring-mass — how damping shapes the motion" backHref="../index.html" />
       <Intuition>弹簧上质量的运动由 <b>m x″ + b x′ + k x = 0</b> 描述。<b style={{ color: C.acc }}>阻尼 b</b> 决定运动形态：小阻尼时振荡衰减至静止（欠阻尼），大阻尼时不振荡而单调回到平衡（过阻尼），中间的临界值对应最快回到平衡。解为 e^(−bt/2m)·cos(ωt)。</Intuition>
-      <Card variant="chart">
-        <div className="chart-label">物理模型（实时动画）</div>
-        <svg viewBox="0 0 360 140">
-          <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
-          <line x1={sx0} y1="30" x2={sx0} y2="110" stroke={C.dim} strokeWidth="3" />
-          <line x1={restX} y1="30" x2={restX} y2="110" stroke={C.ghost} strokeWidth="1" strokeDasharray="3 4" />
-          <path d={spring} fill="none" stroke={C.fn} strokeWidth="2" />
-          <rect x={massX - 22} y={coilY - 22} width="44" height="44" rx="6" fill={C.fillLight} stroke={C.fill} strokeWidth="2" filter="url(#glow)" />
-          <text x={massX} y={coilY + 5} fill={C.ink} fontSize="12" textAnchor="middle" fontFamily="var(--font-mono)">m</text>
-        </svg>
-      </Card>
-      <Card variant="chart">
-        <div className="chart-label">位移 x(t)</div>
-        <svg viewBox="0 0 360 170">
-          <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
-          <path d={env} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
-          <path d={envN} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
-          <path d={path} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" />
-          <circle cx={ctx.sx(t)} cy={ctx.sy(Math.max(-1.2, Math.min(1.2, xNow)))} r="4" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
-        </svg>
-        <Legend items={[{ color: C.fn, label: "x(t)" }, { color: C.dim, label: "衰减包络", dashed: true }, { color: C.acc, label: "当前时刻" }]} />
-      </Card>
-      <Card>
-        <SliderControl label="阻尼 b" display={b.toFixed(2)} color={C.acc} min={0} max={6} step={0.05} value={b} onChange={setB} />
-        <SliderControl label="弹簧刚度 k" display={k.toFixed(1)} color={C.fill} min={0.5} max={10} step={0.1} value={k} onChange={setK} />
-        <SliderControl label="质量 m" display={m.toFixed(1)} color={C.fn} min={0.3} max={4} step={0.1} value={m} onChange={setM} last />
-      </Card>
+      <StickyChart>
+        <Card variant="chart">
+          <div className="chart-label">物理模型（实时动画）</div>
+          <svg viewBox="0 0 360 140">
+            <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
+            <line x1={sx0} y1="30" x2={sx0} y2="110" stroke={C.dim} strokeWidth="3" />
+            <line x1={restX} y1="30" x2={restX} y2="110" stroke={C.ghost} strokeWidth="1" strokeDasharray="3 4" />
+            <path d={spring} fill="none" stroke={C.fn} strokeWidth="1.5" />
+            <rect x={massX - 22} y={coilY - 22} width="44" height="44" rx="1" fill={C.fillLight} stroke={C.fill} strokeWidth="1.5" />
+            <text x={massX} y={coilY + 5} fill={C.ink} fontSize="12" textAnchor="middle" fontFamily="var(--font-mono)">m</text>
+          </svg>
+        </Card>
+        <Card variant="chart">
+          <div className="chart-label">位移 x(t)</div>
+          <svg viewBox="0 0 360 170">
+            <line x1={ctx.pad.l} y1={ctx.sy(0)} x2={ctx.W - ctx.pad.r} y2={ctx.sy(0)} stroke={C.axis} strokeWidth="1" />
+            <path d={env} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
+            <path d={envN} fill="none" stroke={C.dim} strokeWidth="1" strokeDasharray="4 3" />
+            <path d={path} fill="none" stroke={C.fn} strokeWidth="1.5" />
+            <circle cx={ctx.sx(t)} cy={ctx.sy(Math.max(-1.2, Math.min(1.2, xNow)))} r="3" fill={C.acc} stroke={C.bg} strokeWidth="1.5" />
+          </svg>
+          <Legend items={[{ color: C.fn, label: "x(t)" }, { color: C.dim, label: "衰减包络", dashed: true }, { color: C.acc, label: "当前时刻" }]} />
+        </Card>
+      </StickyChart>
       <Card>
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="固有频率 ω₀=√(k/m)" value={w0.toFixed(2)} color={C.fn} />
@@ -103,6 +100,20 @@ function App() {
           { title: "过阻尼", en: "b > 2√(km)", desc: "不振荡，单调而缓慢地回到平衡。", color: C.warn },
         ]} />
       </Card>
+
+      <DockSpacer />
+
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="阻尼 b" display={b.toFixed(2)} color={C.acc} min={0} max={6} step={0.05} value={b} onChange={setB} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="弹簧刚度 k" display={k.toFixed(1)} color={C.fill} min={0.5} max={10} step={0.1} value={k} onChange={setK} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="质量 m" display={m.toFixed(1)} color={C.fn} min={0.3} max={4} step={0.1} value={m} onChange={setM} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }

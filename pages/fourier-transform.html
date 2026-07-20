@@ -55,12 +55,13 @@ function App() {
       <PageHeader title="傅里叶变换" subtitle="Fourier transform — from time to frequency" backHref="../index.html" />
       <Intuition>任意信号均可表示为不同频率正弦分量的叠加。<b style={{ color: C.fn }}>时域</b>描述波形随时间的变化，<b style={{ color: C.acc }}>频域</b>描述各频率分量的幅度。离散傅里叶变换 X(k)=Σ x(n)e^(−j2πkn/N) 给出信号在各频率上的分布。</Intuition>
       <ExampleSwitcher examples={TYPES} active={type} onChange={setType} />
+      <StickyChart>
       <Card variant="chart">
         <div className="chart-label">时域 x(t)</div>
         <svg viewBox="0 0 360 150">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
           <line x1={tCtx.pad.l} y1={tCtx.sy(0)} x2={tCtx.W - tCtx.pad.r} y2={tCtx.sy(0)} stroke={C.axis} strokeWidth="1" />
-          <path d={tPath} fill="none" stroke={C.fn} strokeWidth="2" filter="url(#glow)" />
+          <path d={tPath} fill="none" stroke={C.fn} strokeWidth="1.5" />
         </svg>
       </Card>
       <Card variant="chart">
@@ -68,14 +69,12 @@ function App() {
         <svg viewBox="0 0 360 150">
           <line x1={fCtx.pad.l} y1={fCtx.sy(0)} x2={fCtx.W - fCtx.pad.r} y2={fCtx.sy(0)} stroke={C.axis} strokeWidth="1" />
           {spec.map((v, k) => (
-            <line key={k} x1={fCtx.sx(k)} y1={fCtx.sy(0)} x2={fCtx.sx(k)} y2={fCtx.sy(v)} stroke={C.acc} strokeWidth="2" strokeLinecap="round" opacity={v > specMax * 0.05 ? 1 : 0.35} />
+            <line key={k} x1={fCtx.sx(k)} y1={fCtx.sy(0)} x2={fCtx.sx(k)} y2={fCtx.sy(v)} stroke={C.acc} strokeWidth="1.5" opacity={v > specMax * 0.05 ? 1 : 0.35} />
           ))}
         </svg>
         <Legend items={[{ color: C.fn, label: "时域波形" }, { color: C.acc, label: "频率成分" }]} />
       </Card>
-      <Card>
-        <SliderControl label="频率参数 f" display={freq.toFixed(0)} color={C.fn} min={1} max={30} step={1} value={freq} onChange={setFreq} last hint="调节 f，观察频谱峰值位置随之移动" />
-      </Card>
+      </StickyChart>
       <Card>
         <Steps title="傅里叶变换三步" items={[
           { title: "构造基", en: "e^(j2πkt)", desc: "以一组不同频率的复指数作为基函数。", color: C.fn },
@@ -83,6 +82,12 @@ function App() {
           { title: "得到频谱", en: "|X(k)|", desc: "求和结果的幅度即该频率分量的强度。", color: C.acc },
         ]} />
       </Card>
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="频率参数 f" display={freq.toFixed(0)} color={C.fn} min={1} max={30} step={1} value={freq} onChange={setFreq} last hint="调节 f，观察频谱峰值位置随之移动" />
+        </div>
+      </BottomDock>
     </div>
   );
 }

@@ -40,6 +40,7 @@ function App() {
     <div>
       <PageHeader title="点积" subtitle="Dot product — length times aligned length" backHref="../index.html" />
       <Intuition>点积 <b>a·b = |a||b|cos θ</b> 度量两向量方向的一致程度。夹角越小，值越大；<b style={{ color: C.acc }}>正交时点积为 0</b>；夹角为钝角时取负值。绿色虚线为 a 在 b 上的投影长度。</Intuition>
+      <StickyChart>
       <Card variant="chart">
         <svg viewBox="0 0 360 340">
           <defs dangerouslySetInnerHTML={{ __html: GLOW_FILTER_SVG }} />
@@ -56,12 +57,7 @@ function App() {
         </svg>
         <Legend items={[{ color: C.fn, label: "a" }, { color: C.fill, label: "b" }, { color: C.acc, label: "夹角 θ" }]} />
       </Card>
-      <Card>
-        <SliderControl label="a.x" display={ax.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={ax} onChange={setAx} />
-        <SliderControl label="a.y" display={ay.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={ay} onChange={setAy} />
-        <SliderControl label="b.x" display={bx.toFixed(1)} color={C.fill} min={-6} max={6} step={0.1} value={bx} onChange={setBx} />
-        <SliderControl label="b.y" display={by.toFixed(1)} color={C.fill} min={-6} max={6} step={0.1} value={by} onChange={setBy} last />
-      </Card>
+      </StickyChart>
       <Card>
         <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
           <StatTile label="点积 a·b" value={dot.toFixed(2)} color={C.fn} />
@@ -76,6 +72,21 @@ function App() {
           { title: "投影式", en: "|a| · comp_a b", desc: "一个向量长度与另一向量投影之积。", color: C.acc },
         ]} />
       </Card>
+      <DockSpacer />
+      <BottomDock>
+        <div className="dock-cell">
+          <SliderControl label="a.x" display={ax.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={ax} onChange={setAx} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="a.y" display={ay.toFixed(1)} color={C.fn} min={-6} max={6} step={0.1} value={ay} onChange={setAy} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="b.x" display={bx.toFixed(1)} color={C.fill} min={-6} max={6} step={0.1} value={bx} onChange={setBx} last />
+        </div>
+        <div className="dock-cell">
+          <SliderControl label="b.y" display={by.toFixed(1)} color={C.fill} min={-6} max={6} step={0.1} value={by} onChange={setBy} last />
+        </div>
+      </BottomDock>
     </div>
   );
 }
